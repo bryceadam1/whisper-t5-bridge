@@ -30,8 +30,18 @@ fi
 
 USR=$(first_id oci iam user list --compartment-id "$OCI_TENANCY" --name "$NAME")
 if [ -n "$USR" ]; then echo "user: exists"; else
+  ERR=$(mktemp)
   USR=$(oci iam user create --name "$NAME" --description "Claude agent for whisper-t5-bridge" \
-    --query data.id --raw-output 2>/dev/null) || die "user create"
+    --query data.id --raw-output 2>"$ERR")
+  if [ -z "$USR" ]; then
+    # Identity-domain tenancies require an email on new users: use a +alias of the owner's own address.
+    OWNER=$(oci iam user get --user-id "${OCI_CS_USER_OCID:-}" --query data.email --raw-output 2>/dev/null)
+    if [[ "$OWNER" == *@* ]]; then
+      USR=$(oci iam user create --name "$NAME" --description "Claude agent for whisper-t5-bridge" \
+        --email "${OWNER%@*}+$NAME@${OWNER#*@}" --query data.id --raw-output 2>"$ERR")
+    fi
+  fi
+  [ -n "$USR" ] || { grep -o '"message": "[^"]*"' "$ERR" | head -1; die "user create"; }
   echo "user: created"
 fi
 
