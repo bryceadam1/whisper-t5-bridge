@@ -4,6 +4,7 @@
 # Creates a sandbox compartment and a restricted "bridge-agent" API user whose only rights are
 # compute, networking and volumes inside that compartment. Uploads the agent's PUBLIC key only.
 set -uo pipefail
+echo "bootstrap v3"
 
 NAME=bridge-agent
 COMP_NAME=whisper-t5-bridge
@@ -41,7 +42,7 @@ if [ -n "$USR" ]; then echo "user: exists"; else
         --email "${OWNER%@*}+$NAME@${OWNER#*@}" --query data.id --raw-output 2>"$ERR")
     fi
   fi
-  [ -n "$USR" ] || { grep -o '"message": "[^"]*"' "$ERR" | head -1; die "user create"; }
+  [ -n "$USR" ] || { grep -E '"(code|message)"' "$ERR" || tail -5 "$ERR"; echo "owner email lookup: ${OWNER:-none}"; die "user create"; }
   echo "user: created"
 fi
 
