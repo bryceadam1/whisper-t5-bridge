@@ -1,0 +1,27 @@
+# Credentials: never commit
+.oci/
+*.pem
+*.key
+.env
+*.env
+config.oci
+id_*
+
+# Data, caches, and artifacts (kept out of git; weights are published separately on approval)
+data/
+cache/
+runs/
+outputs/
+*.wav
+*.flac
+*.safetensors
+*.pt
+*.pth
+*.npy
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.DS_Store
