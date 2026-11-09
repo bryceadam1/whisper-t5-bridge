@@ -11,6 +11,17 @@ import numpy as np
 import torch
 
 REPEAT_INSTRUCTION = "Write down exactly what was said:"
+_STATES: dict[tuple[str, bool], np.ndarray] = {}  # one copy per feature file, shared by every source using it
+
+
+def load_states(path: Path, in_memory: bool) -> np.ndarray:
+    key = (str(path), in_memory)
+    if key not in _STATES:
+        arr = np.load(path, mmap_mode="r")
+        # np.array copies a memmap into RAM (np.ascontiguousarray would return the memmap itself, leaving every
+        # batch to fault pages in from disk at random).
+        _STATES[key] = np.array(arr) if in_memory else arr
+    return _STATES[key]
 VAL_PERCENT = 3
 
 
@@ -62,10 +73,7 @@ class Examples:
         ctc = dict(zip(self.meta, tokenizer([spoken[i] for i in self.meta], add_special_tokens=False).input_ids))
         for r, b, a in zip(self.records, before_ids, after_ids):
             r["before_ids"], r["after_ids"], r["ctc_ids"] = b, a, ctc[r["id"]]
-        arr = np.load(features_dir / f"{split}_{window}.npy", mmap_mode="r")
-        # np.array copies a memmap into RAM (np.ascontiguousarray would return the memmap itself, leaving every
-        # batch to fault pages in from disk at random).
-        self.states = np.array(arr) if in_memory else arr
+        self.states = load_states(features_dir / f"{split}_{window}.npy", in_memory)
         self.window = window
 
     def __len__(self):
