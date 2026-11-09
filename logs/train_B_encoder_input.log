@@ -1,0 +1,140 @@
+train 38983 records over 13391 clips; val 1200 pairs over 409 held-out training clips
+target RMS 10.479 (encoder_input)
+bridge params 10,245,120; LoRA params 0
+/home/opc/whisper-t5-bridge/scripts/train.py:185: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.
+Consider using tensor.detach() first. (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:820.)
+  rec = {"step": step, "epoch": epoch, "loss": float(loss), **{k: float(v) for k, v in parts.items()},
+step 50 epoch 0 loss 1.634 kl 1.248 ce 1.93 repeat 0 agree 0.587 lr 8.332e-05 min 0.2282
+step 100 epoch 0 loss 2.065 kl 1.562 ce 2.511 repeat 0 agree 0.5371 lr 0.0001666 min 0.4517
+step 150 epoch 0 loss 1.997 kl 1.516 ce 2.406 repeat 0 agree 0.5507 lr 0.0002496 min 0.6704
+step 200 epoch 0 loss 1.795 kl 1.38 ce 2.071 repeat 0 agree 0.5782 lr 0.0003325 min 0.8957
+step 250 epoch 0 loss 1.45 kl 1.093 ce 1.785 repeat 0 agree 0.631 lr 0.000415 min 1.12
+step 300 epoch 0 loss 1.37 kl 1.047 ce 1.613 repeat 0 agree 0.6514 lr 0.0004971 min 1.342
+step 350 epoch 0 loss 1.775 kl 1.346 ce 2.145 repeat 0 agree 0.629 lr 0.000496 min 1.555
+step 400 epoch 0 loss 1.938 kl 1.471 ce 2.337 repeat 0 agree 0.5746 lr 0.0004948 min 1.773
+step 450 epoch 0 loss 2.373 kl 1.91 ce 2.314 repeat 0 agree 0.592 lr 0.0004935 min 2.003
+step 500 epoch 0 loss 1.071 kl 0.8091 ce 1.309 repeat 0 agree 0.7316 lr 0.0004919 min 2.236
+VAL {'step': 500, 'val_kl': 1.2599293822827549, 'val_ce': 1.8482944783957105, 'val_agree': 0.6583169815332994}
+step 550 epoch 0 loss 1.409 kl 1.067 ce 1.708 repeat 0 agree 0.6804 lr 0.0004903 min 2.505
+step 600 epoch 0 loss 1.079 kl 0.8113 ce 1.336 repeat 0 agree 0.7529 lr 0.0004884 min 2.732
+step 650 epoch 0 loss 1.353 kl 1.007 ce 1.726 repeat 0 agree 0.6533 lr 0.0004864 min 2.953
+step 700 epoch 0 loss 1.006 kl 0.754 ce 1.26 repeat 0 agree 0.739 lr 0.0004843 min 3.175
+step 750 epoch 1 loss 1.647 kl 1.25 ce 1.984 repeat 0 agree 0.6211 lr 0.000482 min 3.394
+step 800 epoch 1 loss 0.8907 kl 0.6695 ce 1.106 repeat 0 agree 0.7574 lr 0.0004795 min 3.618
+step 850 epoch 1 loss 1.445 kl 1.085 ce 1.803 repeat 0 agree 0.6456 lr 0.0004769 min 3.841
+step 900 epoch 1 loss 0.9783 kl 0.738 ce 1.201 repeat 0 agree 0.7389 lr 0.0004742 min 4.07
+step 950 epoch 1 loss 1.651 kl 1.235 ce 2.078 repeat 0 agree 0.609 lr 0.0004713 min 4.3
+step 1000 epoch 1 loss 1.326 kl 0.9816 ce 1.724 repeat 0 agree 0.6359 lr 0.0004682 min 4.521
+VAL {'step': 1000, 'val_kl': 1.1682220062483912, 'val_ce': 1.742652255555858, 'val_agree': 0.6791029533614282}
+step 1050 epoch 1 loss 1.27 kl 0.9367 ce 1.669 repeat 0 agree 0.6782 lr 0.0004651 min 4.788
+step 1100 epoch 1 loss 1.969 kl 1.554 ce 2.076 repeat 0 agree 0.604 lr 0.0004618 min 5.008
+step 1150 epoch 1 loss 1.403 kl 1.049 ce 1.774 repeat 0 agree 0.5881 lr 0.0004583 min 5.264
+step 1200 epoch 1 loss 0.8926 kl 0.6651 ce 1.137 repeat 0 agree 0.7549 lr 0.0004547 min 5.484
+step 1250 epoch 1 loss 1.43 kl 1.071 ce 1.795 repeat 0 agree 0.6393 lr 0.000451 min 5.71
+step 1300 epoch 1 loss 1.66 kl 1.248 ce 2.06 repeat 0 agree 0.6036 lr 0.0004472 min 5.932
+step 1350 epoch 1 loss 0.7643 kl 0.5763 ce 0.9401 repeat 0 agree 0.7889 lr 0.0004432 min 6.159
+step 1400 epoch 1 loss 1.446 kl 1.073 ce 1.863 repeat 0 agree 0.6253 lr 0.0004391 min 6.377
+step 1450 epoch 2 loss 1.375 kl 1.009 ce 1.829 repeat 0 agree 0.6244 lr 0.0004349 min 6.606
+step 1500 epoch 2 loss 2.318 kl 1.888 ce 2.152 repeat 0 agree 0.6348 lr 0.0004305 min 6.835
+VAL {'step': 1500, 'val_kl': 1.119090123668961, 'val_ce': 1.6735803873642632, 'val_agree': 0.6912121682063394}
+step 1550 epoch 2 loss 0.9787 kl 0.7606 ce 1.09 repeat 0 agree 0.7915 lr 0.0004261 min 7.106
+step 1600 epoch 2 loss 1.085 kl 0.8258 ce 1.298 repeat 0 agree 0.7609 lr 0.0004215 min 7.335
+step 1650 epoch 2 loss 0.1413 kl 0.101 ce 0.2016 repeat 0 agree 0.903 lr 0.0004168 min 7.555
+step 1700 epoch 2 loss 0.9399 kl 0.7015 ce 1.192 repeat 0 agree 0.7592 lr 0.0004121 min 7.78
+step 1750 epoch 2 loss 0.7278 kl 0.5407 ce 0.9354 repeat 0 agree 0.7769 lr 0.0004072 min 8.002
+step 1800 epoch 2 loss 0.1982 kl 0.1481 ce 0.2503 repeat 0 agree 0.9243 lr 0.0004022 min 8.219
+step 1850 epoch 2 loss 0.8056 kl 0.6243 ce 0.9061 repeat 0 agree 0.8097 lr 0.0003971 min 8.444
+step 1900 epoch 2 loss 1.318 kl 0.9641 ce 1.771 repeat 0 agree 0.6437 lr 0.000392 min 8.667
+step 1950 epoch 2 loss 2.407 kl 1.954 ce 2.262 repeat 0 agree 0.5614 lr 0.0003867 min 8.896
+step 2000 epoch 2 loss 1.167 kl 0.8572 ce 1.55 repeat 0 agree 0.6667 lr 0.0003814 min 9.125
+VAL {'step': 2000, 'val_kl': 1.0962046987336613, 'val_ce': 1.6317052219225012, 'val_agree': 0.7007127209849979}
+step 2050 epoch 2 loss 0.9176 kl 0.6974 ce 1.101 repeat 0 agree 0.7725 lr 0.0003759 min 9.39
+step 2100 epoch 2 loss 1.211 kl 0.9135 ce 1.488 repeat 0 agree 0.7218 lr 0.0003704 min 9.617
+step 2150 epoch 2 loss 1.639 kl 1.294 ce 1.724 repeat 0 agree 0.7059 lr 0.0003649 min 9.84
+step 2200 epoch 3 loss 1.202 kl 0.9162 ce 1.429 repeat 0 agree 0.6884 lr 0.0003592 min 10.06
+step 2250 epoch 3 loss 0.8852 kl 0.6562 ce 1.145 repeat 0 agree 0.7093 lr 0.0003535 min 10.29
+step 2300 epoch 3 loss 1.189 kl 0.8805 ce 1.545 repeat 0 agree 0.6746 lr 0.0003477 min 10.51
+step 2350 epoch 3 loss 1.113 kl 0.8364 ce 1.384 repeat 0 agree 0.7301 lr 0.0003419 min 10.74
+step 2400 epoch 3 loss 0.2323 kl 0.1743 ce 0.2898 repeat 0 agree 0.9333 lr 0.000336 min 10.95
+step 2450 epoch 3 loss 0.8909 kl 0.6524 ce 1.193 repeat 0 agree 0.7383 lr 0.0003301 min 11.18
+step 2500 epoch 3 loss 0.837 kl 0.6143 ce 1.114 repeat 0 agree 0.7961 lr 0.0003241 min 11.4
+VAL {'step': 2500, 'val_kl': 1.0541981212470841, 'val_ce': 1.5817088264486066, 'val_agree': 0.7047265910583993}
+step 2550 epoch 3 loss 0.3652 kl 0.2605 ce 0.5235 repeat 0 agree 0.8719 lr 0.0003181 min 11.67
+step 2600 epoch 3 loss 1.01 kl 0.7401 ce 1.35 repeat 0 agree 0.6886 lr 0.000312 min 11.89
+step 2650 epoch 3 loss 1.034 kl 0.7486 ce 1.425 repeat 0 agree 0.6716 lr 0.0003059 min 12.12
+step 2700 epoch 3 loss 0.8977 kl 0.6528 ce 1.224 repeat 0 agree 0.7584 lr 0.0002998 min 12.34
+step 2750 epoch 3 loss 1.049 kl 0.7744 ce 1.375 repeat 0 agree 0.7052 lr 0.0002936 min 12.57
+step 2800 epoch 3 loss 0.9619 kl 0.7054 ce 1.282 repeat 0 agree 0.7198 lr 0.0002874 min 12.8
+step 2850 epoch 3 loss 0.788 kl 0.5746 ce 1.067 repeat 0 agree 0.75 lr 0.0002813 min 13.02
+step 2900 epoch 4 loss 0.6376 kl 0.4614 ce 0.8813 repeat 0 agree 0.7955 lr 0.0002751 min 13.25
+step 2950 epoch 4 loss 0.8063 kl 0.5801 ce 1.131 repeat 0 agree 0.75 lr 0.0002688 min 13.46
+step 3000 epoch 4 loss 0.05257 kl 0.03366 ce 0.09456 repeat 0 agree 0.9665 lr 0.0002626 min 13.69
+VAL {'step': 3000, 'val_kl': 1.0224939902191577, 'val_ce': 1.5220312890799148, 'val_agree': 0.7119936334050221}
+step 3050 epoch 4 loss 1.987 kl 1.613 ce 1.873 repeat 0 agree 0.6739 lr 0.0002564 min 13.95
+step 3100 epoch 4 loss 0.4103 kl 0.2889 ce 0.6073 repeat 0 agree 0.8313 lr 0.0002502 min 14.18
+step 3150 epoch 4 loss 3.289 kl 2.714 ce 2.874 repeat 0 agree 0.5441 lr 0.000244 min 14.4
+step 3200 epoch 4 loss 3.772 kl 3.084 ce 3.44 repeat 0 agree 0.4574 lr 0.0002378 min 14.62
+step 3250 epoch 4 loss 0.8656 kl 0.6268 ce 1.194 repeat 0 agree 0.7332 lr 0.0002316 min 14.85
+step 3300 epoch 4 loss 0.6789 kl 0.4815 ce 0.9866 repeat 0 agree 0.8042 lr 0.0002255 min 15.08
+step 3350 epoch 4 loss 0.7873 kl 0.5771 ce 1.051 repeat 0 agree 0.7321 lr 0.0002193 min 15.3
+step 3400 epoch 4 loss 0.06638 kl 0.04238 ce 0.12 repeat 0 agree 0.9512 lr 0.0002132 min 15.53
+step 3450 epoch 4 loss 0.8088 kl 0.5745 ce 1.171 repeat 0 agree 0.7473 lr 0.0002072 min 15.75
+step 3500 epoch 4 loss 0.8031 kl 0.5811 ce 1.11 repeat 0 agree 0.7534 lr 0.0002012 min 15.98
+VAL {'step': 3500, 'val_kl': 0.9966571629047394, 'val_ce': 1.489382265702538, 'val_agree': 0.7166987955570222}
+step 3550 epoch 4 loss 0.9909 kl 0.7214 ce 1.347 repeat 0 agree 0.6893 lr 0.0001952 min 16.25
+step 3600 epoch 5 loss 2.939 kl 2.412 ce 2.635 repeat 0 agree 0.5529 lr 0.0001892 min 16.47
+step 3650 epoch 5 loss 0.696 kl 0.5092 ce 0.9339 repeat 0 agree 0.809 lr 0.0001833 min 16.7
+step 3700 epoch 5 loss 3.68 kl 3.054 ce 3.132 repeat 0 agree 0.5385 lr 0.0001775 min 16.93
+step 3750 epoch 5 loss 0.08208 kl 0.05372 ce 0.1418 repeat 0 agree 0.9607 lr 0.0001717 min 17.15
+step 3800 epoch 5 loss 0.798 kl 0.5628 ce 1.176 repeat 0 agree 0.705 lr 0.000166 min 17.37
+step 3850 epoch 5 loss 0.2037 kl 0.1411 ce 0.3127 repeat 0 agree 0.93 lr 0.0001604 min 17.59
+step 3900 epoch 5 loss 0.5255 kl 0.3797 ce 0.7292 repeat 0 agree 0.8807 lr 0.0001548 min 17.81
+step 3950 epoch 5 loss 0.82 kl 0.5905 ce 1.147 repeat 0 agree 0.7476 lr 0.0001493 min 18.04
+step 4000 epoch 5 loss 0.666 kl 0.4833 ce 0.9131 repeat 0 agree 0.8226 lr 0.0001439 min 18.26
+VAL {'step': 4000, 'val_kl': 1.0320522642653922, 'val_ce': 1.5208563079004704, 'val_agree': 0.7176186895888784}
+step 4050 epoch 5 loss 1.662 kl 1.321 ce 1.708 repeat 0 agree 0.6455 lr 0.0001385 min 18.53
+step 4100 epoch 5 loss 0.4225 kl 0.3335 ce 0.4452 repeat 0 agree 0.9474 lr 0.0001333 min 18.76
+step 4150 epoch 5 loss 0.5238 kl 0.3658 ce 0.7898 repeat 0 agree 0.8621 lr 0.0001281 min 18.98
+step 4200 epoch 5 loss 0.7971 kl 0.5664 ce 1.153 repeat 0 agree 0.7435 lr 0.000123 min 19.2
+step 4250 epoch 5 loss 0.8641 kl 0.6311 ce 1.165 repeat 0 agree 0.7269 lr 0.000118 min 19.42
+step 4300 epoch 5 loss 1.727 kl 1.4 ce 1.636 repeat 0 agree 0.6667 lr 0.0001131 min 19.64
+step 4350 epoch 6 loss 1.32 kl 0.9958 ce 1.62 repeat 0 agree 0.6667 lr 0.0001084 min 19.87
+step 4400 epoch 6 loss 0.1198 kl 0.08807 ce 0.1588 repeat 0 agree 0.9527 lr 0.0001037 min 20.09
+step 4450 epoch 6 loss 0.7094 kl 0.5121 ce 0.9866 repeat 0 agree 0.824 lr 9.911e-05 min 20.31
+step 4500 epoch 6 loss 0.2547 kl 0.1717 ce 0.4149 repeat 0 agree 0.9086 lr 9.465e-05 min 20.54
+VAL {'step': 4500, 'val_kl': 1.0451805876648945, 'val_ce': 1.529561301936274, 'val_agree': 0.7138724106809368}
+step 4550 epoch 6 loss 0.7219 kl 0.5078 ce 1.07 repeat 0 agree 0.7679 lr 9.031e-05 min 20.81
+step 4600 epoch 6 loss 0.6683 kl 0.4622 ce 1.031 repeat 0 agree 0.7738 lr 8.609e-05 min 21.04
+step 4650 epoch 6 loss 0.4815 kl 0.3439 ce 0.6883 repeat 0 agree 0.8867 lr 8.198e-05 min 21.27
+step 4700 epoch 6 loss 0.5721 kl 0.3988 ce 0.8663 repeat 0 agree 0.8148 lr 7.801e-05 min 21.49
+step 4750 epoch 6 loss 0.6274 kl 0.4413 ce 0.9304 repeat 0 agree 0.7989 lr 7.415e-05 min 21.71
+step 4800 epoch 6 loss 0.5358 kl 0.3742 ce 0.8081 repeat 0 agree 0.8306 lr 7.043e-05 min 21.95
+step 4850 epoch 6 loss 0.1884 kl 0.1308 ce 0.2876 repeat 0 agree 0.9494 lr 6.684e-05 min 22.17
+step 4900 epoch 6 loss 0.5613 kl 0.4027 ce 0.793 repeat 0 agree 0.8828 lr 6.338e-05 min 22.39
+step 4950 epoch 6 loss 0.6541 kl 0.4722 ce 0.9096 repeat 0 agree 0.7933 lr 6.006e-05 min 22.61
+step 5000 epoch 6 loss 0.7757 kl 0.5584 ce 1.087 repeat 0 agree 0.7564 lr 5.688e-05 min 22.84
+VAL {'step': 5000, 'val_kl': 1.057442071645156, 'val_ce': 1.5401667939580002, 'val_agree': 0.7183824220429296}
+step 5050 epoch 7 loss 0.6847 kl 0.4868 ce 0.9897 repeat 0 agree 0.7962 lr 5.384e-05 min 23.11
+step 5100 epoch 7 loss 0.6624 kl 0.4564 ce 1.03 repeat 0 agree 0.7671 lr 5.094e-05 min 23.33
+step 5150 epoch 7 loss 0.5606 kl 0.4146 ce 0.7298 repeat 0 agree 0.8707 lr 4.819e-05 min 23.56
+step 5200 epoch 7 loss 0.2182 kl 0.166 ce 0.261 repeat 0 agree 0.9596 lr 4.558e-05 min 23.78
+step 5250 epoch 7 loss 0.641 kl 0.4433 ce 0.9885 repeat 0 agree 0.8275 lr 4.313e-05 min 24.01
+step 5300 epoch 7 loss 0.6832 kl 0.4993 ce 0.9195 repeat 0 agree 0.8093 lr 4.082e-05 min 24.23
+step 5350 epoch 7 loss 0.633 kl 0.4625 ce 0.8527 repeat 0 agree 0.8471 lr 3.866e-05 min 24.45
+step 5400 epoch 7 loss 0.6314 kl 0.4419 ce 0.9471 repeat 0 agree 0.8177 lr 3.666e-05 min 24.67
+step 5450 epoch 7 loss 0.03537 kl 0.02125 ce 0.07061 repeat 0 agree 0.9759 lr 3.482e-05 min 24.9
+step 5500 epoch 7 loss 0.4628 kl 0.3246 ce 0.6909 repeat 0 agree 0.8839 lr 3.312e-05 min 25.13
+VAL {'step': 5500, 'val_kl': 1.0826540213564166, 'val_ce': 1.5641172359818998, 'val_agree': 0.7154426432174185}
+step 5550 epoch 7 loss 0.6212 kl 0.4396 ce 0.9079 repeat 0 agree 0.8333 lr 3.159e-05 min 25.39
+step 5600 epoch 7 loss 0.6969 kl 0.4844 ce 1.063 repeat 0 agree 0.7733 lr 3.022e-05 min 25.62
+step 5650 epoch 7 loss 0.5548 kl 0.3833 ce 0.8571 repeat 0 agree 0.8271 lr 2.9e-05 min 25.84
+step 5700 epoch 7 loss 0.5071 kl 0.3659 ce 0.706 repeat 0 agree 0.837 lr 2.794e-05 min 26.06
+step 5750 epoch 7 loss 0.5815 kl 0.4003 ce 0.9062 repeat 0 agree 0.816 lr 2.705e-05 min 26.29
+step 5800 epoch 8 loss 0.452 kl 0.3194 ce 0.6634 repeat 0 agree 0.8644 lr 2.631e-05 min 26.52
+step 5850 epoch 8 loss 0.4372 kl 0.3095 ce 0.639 repeat 0 agree 0.8904 lr 2.574e-05 min 26.74
+step 5900 epoch 8 loss 0.5841 kl 0.4168 ce 0.8366 repeat 0 agree 0.8542 lr 2.533e-05 min 26.97
+step 5950 epoch 8 loss 0.4792 kl 0.3317 ce 0.7376 repeat 0 agree 0.8469 lr 2.508e-05 min 27.19
+step 6000 epoch 8 loss 1.013 kl 0.7961 ce 1.086 repeat 0 agree 0.7349 lr 2.5e-05 min 27.41
+VAL {'step': 6000, 'val_kl': 1.10198208430539, 'val_ce': 1.5786929558152736, 'val_agree': 0.7203908446042434}
+done: best val KL 0.9967, 27.5 min
+TRAIN_DONE 07:49:34Z

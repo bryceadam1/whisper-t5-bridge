@@ -1,0 +1,39 @@
+shard 0: 2167 utterances (2167 total)
+shard 1: 2167 utterances (4334 total)
+shard 2: 2167 utterances (6501 total)
+shard 3: 2167 utterances (8668 total)
+shard 4: 2167 utterances (10835 total)
+shard 5: 2167 utterances (13002 total)
+shard 6: 2167 utterances (15169 total)
+shard 7: 2167 utterances (17336 total)
+shard 8: 2167 utterances (19503 total)
+shard 9: 2167 utterances (21670 total)
+shard 10: 2167 utterances (23837 total)
+23837 utterances (83.3 h) from 209 speakers, 47674 renderings
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/47674 in 2 s
+2688/47674 in 23 s
+5248/47674 in 45 s
+7808/47674 in 67 s
+10368/47674 in 90 s
+12928/47674 in 113 s
+15488/47674 in 135 s
+18048/47674 in 157 s
+20608/47674 in 179 s
+23168/47674 in 201 s
+25728/47674 in 223 s
+28288/47674 in 245 s
+30848/47674 in 267 s
+33408/47674 in 288 s
+35968/47674 in 310 s
+38528/47674 in 332 s
+41088/47674 in 354 s
+43648/47674 in 375 s
+46208/47674 in 397 s
+47674 records, mean output 48.5 tokens, unfinished 16480, 416 s
+23837 clips, windows ['truncated']
+QC done in 0 s; keep 23837/23837
+truncated states: 18879692 frames (19.33 GB) in 274 s
+done in 274 s; mean WER 0.000, median 0.000
+EXIT 0

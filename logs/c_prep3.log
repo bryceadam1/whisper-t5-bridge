@@ -1,0 +1,31 @@
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/57076 in 3 s
+2688/57076 in 39 s
+5248/57076 in 76 s
+7808/57076 in 111 s
+10368/57076 in 148 s
+12928/57076 in 184 s
+15488/57076 in 219 s
+18048/57076 in 256 s
+20608/57076 in 291 s
+23168/57076 in 328 s
+25728/57076 in 361 s
+28288/57076 in 388 s
+30848/57076 in 414 s
+33408/57076 in 442 s
+35968/57076 in 468 s
+38528/57076 in 495 s
+41088/57076 in 522 s
+43648/57076 in 546 s
+46208/57076 in 568 s
+48768/57076 in 590 s
+51328/57076 in 612 s
+53888/57076 in 635 s
+56448/57076 in 657 s
+57076 records, mean output 48.8 tokens, unfinished 20215, 669 s
+28538 clips, windows ['truncated']
+QC done in 0 s; keep 28538/28538
+truncated states: 22756519 frames (23.30 GB) in 328 s
+done in 328 s; mean WER 0.000, median 0.000
+C_PREP_OK

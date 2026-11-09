@@ -1,0 +1,31 @@
+{
+ "features": "data/features",
+ "teacher": "data/teacher",
+ "out": "runs/C2",
+ "layers": 3,
+ "batch_size": 64,
+ "max_frames": 25600,
+ "steps": 8000,
+ "lr": 0.0003,
+ "warmup": 200,
+ "ce_weight": 0.2,
+ "init_bridge": "runs/C_base/bridge.safetensors",
+ "lora_rank": 0,
+ "lora_lr": 0.0002,
+ "eval_every": 1000,
+ "dropout": 0.2,
+ "time_masks": 2,
+ "mask_frac": 0.05,
+ "state_noise": 0.1,
+ "injection": "decoder",
+ "n_conv": 1,
+ "repeat": false,
+ "repeat_weight": 1.0,
+ "ctc_weight": 0.0,
+ "subset": "data/flan_subset",
+ "extra": [
+  "libri:data/teacher_libri:data/libri_subset",
+  "libri360:data/teacher_libri360:data/libri360_subset"
+ ],
+ "seed": 0
+}

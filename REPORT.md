@@ -1,5 +1,102 @@
 # whisper-t5-bridge: results
 
+## Round 2 (2026-11-09): what moved the needle
+
+**Bottom line.** Real recorded speech did; changing the objective or the injection point did not. Adding
+184 h of LibriSpeech to the FLAN TTS data took the bridge from 0.328 to **0.373 exact match** with the
+text-prompted teacher (held-out voices, the game's truncated window), token agreement from 0.741 to
+0.772, and mean KL down 21% (0.916 → 0.721), all against a baseline retrained under the same protocol.
+It is still well short of the ASR route (0.586), and on full 30 s windows it is slightly worse than the
+baseline. The improved bridge (C2) has the same architecture and tensor layout as round 1's, so it is a
+drop-in replacement; it is in `release_v2/` on your Mac and not published.
+
+### What was tried
+
+All runs: 3-layer bridge, 6000-12000 steps, time masking + state noise + dropout 0.2, checkpoints chosen
+on a 3% slice of the *training* clips (round 1 chose them on eval_seen clips, which inflated its exact
+match by about 0.025: the released round-1 bridge scores 0.353 under that bias, the same recipe 0.328
+without it).
+
+| run | change | why |
+|---|---|---|
+| baseline | round-1 recipe, retrained under the clean protocol | fair reference |
+| A | + "write down exactly what was said" task (target: the true transcript) + CTC head on the bridge output (T5 vocabulary, weight 0.2) | force word-level content through |
+| B | bridge output as soft tokens in T5's *input-embedding* space, placed where the input sat in the prompt, run through T5's frozen encoder with the instruction | the standard speech-LLM design; lets T5's encoder contextualise the audio |
+| A + B | both | |
+| C | baseline recipe + 100 h of LibriSpeech train-clean-100 (251 speakers), each utterance with 2 teacher prompts from generic templates (translation, summary, topic, question generation, continuation) | more and real speech, with long, word-dependent teacher outputs (mean 49 tokens vs 7) |
+| C2 | C continued for 8000 steps with a further 83 h of train-clean-360 (209 more speakers) | more data |
+
+### Results
+
+Agreement with the teacher on held-out FLAN inputs (metrics as in round 1 below).
+
+| run | held-out voices, truncated: EM / agree / KL | seen voices, truncated: EM / agree / KL | held-out voices, full 30 s: EM / agree / KL | seen voices, full 30 s: EM / agree / KL |
+|---|---|---|---|---|
+| **C2: + 184 h LibriSpeech (released v2)** | 0.373 / 0.772 / 0.721 | 0.371 / 0.776 / 0.722 | 0.290 / 0.675 / 0.939 | 0.288 / 0.676 / 0.954 |
+| C: + 100 h LibriSpeech | 0.365 / 0.766 / 0.772 | 0.373 / 0.773 / 0.764 | 0.282 / 0.693 / 0.917 | 0.288 / 0.695 / 0.924 |
+| baseline (same protocol) | 0.328 / 0.741 / 0.916 | 0.334 / 0.742 / 0.909 | 0.328 / 0.741 / 0.979 | 0.329 / 0.741 / 0.972 |
+| A: lexical objectives | 0.305 / 0.716 / 0.867 | 0.296 / 0.713 / 0.855 | 0.277 / 0.681 / 1.015 | 0.268 / 0.679 / 1.011 |
+| B: encoder-input injection | 0.316 / 0.711 / 0.870 | 0.320 / 0.707 / 0.887 | 0.223 / 0.665 / 1.002 | 0.223 / 0.661 / 1.016 |
+| A + B | 0.311 / 0.719 / 0.809 | 0.318 / 0.719 / 0.810 | 0.200 / 0.637 / 1.149 | 0.195 / 0.630 / 1.184 |
+| *ASR control* | 0.586 / 0.848 / 0.358 | 0.573 / 0.840 / 0.366 | 0.614 / 0.860 / 0.347 | 0.599 / 0.858 / 0.341 |
+| *instruction only* | 0.171 / 0.568 / 1.366 | 0.171 / 0.568 / 1.387 | 0.171 / 0.568 / 1.366 | 0.171 / 0.568 / 1.387 |
+
+**held-out voices, truncated**, exact match / mean KL by family
+
+| family | n | **C2: + 184 h LibriSpeech (released v2)** | C: + 100 h LibriSpeech | baseline (same protocol) | A: lexical objectives | B: encoder-input injection | A + B | ASR control |
+|---|---|---|---|---|---|---|---|---|
+| closed_book_qa | 219 | 0.32 / 0.92 | 0.30 / 0.96 | 0.25 / 1.03 | 0.22 / 0.83 | 0.23 / 0.78 | 0.23 / 0.72 | 0.42 / 0.15 |
+| concept_to_sentence | 106 | 0.05 / 0.54 | 0.06 / 0.58 | 0.04 / 0.63 | 0.05 / 0.72 | 0.00 / 0.84 | 0.01 / 0.65 | 0.37 / 0.21 |
+| continuation | 92 | 0.12 / 2.12 | 0.10 / 2.33 | 0.00 / 3.59 | 0.01 / 3.47 | 0.00 / 3.33 | 0.01 / 3.60 | 0.05 / 3.71 |
+| multiple_choice | 162 | 0.28 / 0.64 | 0.30 / 0.70 | 0.27 / 0.80 | 0.25 / 0.76 | 0.28 / 0.74 | 0.30 / 0.70 | 0.74 / 0.06 |
+| question_type | 115 | 0.72 / 0.17 | 0.71 / 0.18 | 0.73 / 0.19 | 0.65 / 0.19 | 0.76 / 0.14 | 0.67 / 0.18 | 0.93 / 0.03 |
+| sentiment | 107 | 0.79 / 0.11 | 0.76 / 0.11 | 0.72 / 0.15 | 0.70 / 0.16 | 0.65 / 0.17 | 0.67 / 0.14 | 0.98 / 0.01 |
+| ALL | 801 | 0.37 / 0.72 | 0.36 / 0.77 | 0.33 / 0.92 | 0.30 / 0.87 | 0.32 / 0.87 | 0.31 / 0.81 | 0.59 / 0.36 |
+
+### What it means
+
+1. **Data is the lever.** C and C2 improve every metric on the game's window and nearly every task
+   family (closed-book QA 0.25 → 0.32, sentiment 0.72 → 0.79, continuation 0.00 → 0.12). The second 83 h
+   added less than the first 100 h (exact match +0.008, KL −0.05), so returns are diminishing *for this
+   kind of data*.
+2. **The lexical objectives and the encoder-input design lower KL but cost exact match** and token
+   agreement, and they hurt full-window robustness. They make the student's distributions broader and
+   closer to the teacher's on average, while it picks the teacher's top token less often. With 13k TTS
+   clips neither paid off; B was also about 2x slower to train (T5's encoder runs on ~200-400 soft tokens).
+   A run of B with LibriSpeech was started and stopped early: at that speed it would have taken ~2.5 h.
+3. **Full 30 s windows got worse with LibriSpeech** (exact match 0.328 → 0.290). LibriSpeech utterances
+   are long (mean ~13 s), which shifts what the bridge sees; for the game's truncated window this does
+   not matter, but a bridge for full windows would need full-window training data.
+4. **Multiple choice remains the weak spot** (0.28, no better than ignoring the input): the bridge
+   still does not carry the exact question well enough to pick among options; the ASR route does (0.74).
+
+### Cost
+
+Round 2 used 3.87 h (07:10-11:02 UTC), **$7.74**: three failed launches on GPU memory (~0.15 h), the
+A/B/A+B chain and a same-protocol baseline (~1.6 h), LibriSpeech preparation (~0.5 h, overlapped with
+training), C and C2 with evaluations (~1.4 h), and a slow openslr.org download abandoned for the Hugging
+Face mirror. CPU timing is unchanged from round 1 (same architecture).
+
+### Recommendations after round 2
+
+1. **Use `release_v2` for the game's speech path** where the gist is enough; the ASR route is still
+   clearly better where exact words matter (questions, names, picking an option).
+2. **Keep adding real speech, but more varied rather than more of the same.** The second LibriSpeech
+   dose helped less than the first. Read audiobooks are clean and slow; Common Voice (CC0, many accents
+   and microphones) and noise or room augmentation are closer to what a game microphone captures, and a
+   few hours of in-domain game phrases would likely matter more than another 100 h of audiobooks.
+3. **Give real speech content-dependent teacher tasks.** The LibriSpeech prompts were generic; spoken
+   questions with QA or multiple-choice prompts would train exactly the families that lag.
+4. **Do not pursue the lexical objectives or encoder-input injection further at this data scale.** Both
+   were consistent losses on exact match; revisit B only with much more data (it is also slower on CPU,
+   since T5's encoder then runs on the audio tokens).
+5. **flan-t5-base is still not the next step;** about $5 of the $20 remains if you want one more
+   experiment (e.g. Common Voice, ~$3).
+
+---
+
+## Round 1 (2026-11-08)
+
 **Bottom line.** A 10.2M-parameter bridge trained for $7.18 of GPU time lets flan-t5-small act on
 speech, and it is 2.5x faster than going through a Whisper transcript (73-77 ms vs 185-198 ms median per
 utterance on CPU). But it carries the *gist* of what was said far better than the *words*: it matches
@@ -8,7 +105,7 @@ with no input at all. It is good enough for gist-level tasks (sentiment 0.76, qu
 match) and not for tasks that hinge on exact content (closed-book QA 0.32, multiple choice 0.27, which is
 no better than ignoring the input).
 
-## What was built
+### What was built
 
 * **Data**: 8 permissively licensed FLAN 2021 tasks with a single speakable input (see README),
   19,675 training inputs and 861 held-out inputs. Each prompt is split into instruction and input by
@@ -33,7 +130,7 @@ Variants, all 3-layer bridges trained from the same data:
 | stage 2 | bridge + LoRA r8 on decoder cross-attention (229k params) | from stage 1, 3000 steps | 7.4 min |
 | stage 1 + aug (**released**) | bridge | stage 1 plus 2 time masks (<= 5%) and noise on the Whisper states, dropout 0.2 | 10.9 min |
 
-## Results
+### Results
 
 Agreement with the teacher on held-out FLAN inputs. *Exact match*: greedy outputs identical.
 *Token agree*: with teacher forcing, fraction of positions where the system's top token is the teacher's.
@@ -102,7 +199,7 @@ What the numbers say:
 6. **Continuation (lambada) is not meaningful** for any system: flan-t5-small's own continuations are
    near random, so agreement is low everywhere.
 
-## CPU wall time
+### CPU wall time
 
 Per utterance, Apple M1 Pro, PyTorch 2.15 eager, float32, 100 held-out clips (60 for one thread), mean
 3.6 s of speech. Measured with the stage-1 bridge (same architecture as the released one). The Whisper
@@ -122,13 +219,14 @@ The ASR path's mean is dominated by clips where Whisper loops and the temperatur
 the bridge path has no such tail. Candle numbers will differ, but the ratio should hold: the bridge
 replaces an autoregressive Whisper decode with one 9 ms forward pass.
 
-## Cost
+### Cost
 
 | item | amount |
 |---|---|
 | VM.GPU.A10.1, 02:57-06:32 UTC on 2026-11-09 | 3.59 h × $2.00 = **$7.18** |
-| boot volume, 150 GB | ~$0.21 per day while the instance exists (about $0.03 so far) |
-| **total so far** | **≈ $7.21** of the $15 budget |
+| boot volume, 150 GB | ~$0.21 per day while the instance exists (about $0.07 so far) |
+| round 2 (see above) | 3.87 h × $2.00 = **$7.74** |
+| **total, both rounds** | **7.46 h, $14.92 compute + ~$0.07 boot volume ≈ $15.00** of the $20 budget |
 
 GPU time by phase (approx.): setup and TTS benchmarking 0.3 h; TTS 2.1 h (eval clips first, then
 training clips until a 105-min cap, with teacher caching and eval features alongside); training
@@ -140,7 +238,10 @@ The instance is **stopped, not terminated**: its disk still holds the 22 h of au
 states and the teacher cache, which would make a flan-t5-base run cheap. Terminate it to stop the
 boot-volume charge.
 
-## Deliverables
+### Deliverables
+
+* **Round 2: `release_v2/`** (C2): `bridge.safetensors`, `bridge_spec.json`, `reference_io.safetensors`;
+  same layout as round 1, better on the game's window. Local only, not committed or published.
 
 * `release/bridge.safetensors`: the released bridge (stage 1 + aug), float32, 52 flat-named tensors,
   spec embedded in the metadata. **Not committed or published** (awaiting your go-ahead).
@@ -150,7 +251,7 @@ boot-volume charge.
   a candle port (PyTorch reloads reproduce it to within 1e-6).
 * Stage-2 LoRA weights are in `runs/stage2/` (not recommended for use).
 
-## Caveats
+### Caveats
 
 * Checkpoints were selected on a 576-pair slice of the eval_seen clips, which share inputs with the
   held-out-voice set. With 12 candidate checkpoints per run the bias is small, but a separate
@@ -160,7 +261,7 @@ boot-volume charge.
 * The QC step drops clips Whisper misrecognises, which removes the hardest clips (mostly 2-4 word
   keyword lists) from both training and evaluation.
 
-## Recommendations
+### Recommendations
 
 1. **For the mod today**: use the released bridge where the gist is enough (intent, sentiment, short
    commands with a closed set of outcomes), and the ASR route where exact content matters (names,

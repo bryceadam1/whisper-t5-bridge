@@ -10,8 +10,8 @@ The bridge is trained by behaviour-alignment distillation, after BLSP
 the teacher, and the student, hearing the input instead of reading it, learns to match the teacher's
 next-token distributions.
 
-Status: trained and evaluated; see [REPORT.md](REPORT.md) for results, cost and recommendations. The
-released bridge is a stage-1 bridge trained with time masking and noise on the Whisper states.
+Status: two rounds trained and evaluated; see [REPORT.md](REPORT.md). The best bridge (round 2, "C2") adds
+184 h of real LibriSpeech speech to the FLAN TTS data; same architecture and tensor layout as round 1.
 
 ## Method
 
@@ -105,6 +105,13 @@ python -m scripts.train --out runs/stage2 --init-bridge runs/stage1/bridge.safet
 python -m scripts.evaluate --bridge runs/stage1/bridge.safetensors --out results/stage1
 python -m scripts.control_transcripts --split eval_seen   # control transcripts, openai/whisper-style decoding
 python -m scripts.export --bridge runs/stage1_aug/bridge.safetensors --out release
+
+# round 2: real speech (LibriSpeech, CC BY 4.0) as extra training data
+python -m scripts.librispeech_prepare --root <LibriSpeech root> --subset-out data/libri_subset
+python -m scripts.teacher_cache --subset data/libri_subset --split train --out data/teacher_libri
+python -m scripts.whisper_features --split libri --skip-qc --audio <LibriSpeech root> --subset data/libri_subset
+python -m scripts.train --out runs/C_base --extra libri:data/teacher_libri:data/libri_subset
+python -m scripts.compare_runs --runs C_base base_newprotocol
 
 # local CPU timing
 python -m scripts.cpu_timing --bridge runs/stage1/bridge.safetensors --out results/cpu_timing.json
