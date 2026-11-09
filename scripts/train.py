@@ -90,6 +90,7 @@ def main():
     ap.add_argument("--out", default="runs/bridge")
     ap.add_argument("--layers", type=int, default=3)
     ap.add_argument("--batch-size", type=int, default=64)
+    ap.add_argument("--max-frames", type=int, default=25600, help="cap on padded Whisper frames per batch")
     ap.add_argument("--steps", type=int, default=6000)
     ap.add_argument("--lr", type=float, default=5e-4)
     ap.add_argument("--warmup", type=int, default=300)
@@ -121,7 +122,7 @@ def main():
     tok, t5 = load_t5(device)
     train = Examples(args.features, args.teacher, "train", tok, args.subset, part="train", repeat=args.repeat)
     val = Examples(args.features, args.teacher, "train", tok, args.subset, part="val")
-    val_batches = length_batches(val, args.batch_size, shuffle=False)
+    val_batches = length_batches(val, args.batch_size, shuffle=False, max_frames=args.max_frames)
     print(f"train {len(train)} records over {len(train.meta)} clips; val {len(val)} pairs over {len(val.meta)} "
           f"held-out training clips", flush=True)
 
@@ -166,7 +167,8 @@ def main():
     best, step, epoch, t0 = float("inf"), 0, 0, time.time()
     bridge.train()
     while step < args.steps:
-        for idxs in length_batches(train, args.batch_size, shuffle=True, seed=args.seed + epoch):
+        for idxs in length_batches(train, args.batch_size, shuffle=True, seed=args.seed + epoch,
+                                   max_frames=args.max_frames):
             if step >= args.steps:
                 break
             set_lr(step)

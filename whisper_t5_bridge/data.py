@@ -106,8 +106,9 @@ class Examples:
         return batch
 
 
-def length_batches(ex: Examples, batch_size: int, shuffle: bool, seed: int = 0):
-    """Batches of similar audio length (sorted within shuffled pools of 50 batches)."""
+def length_batches(ex: Examples, batch_size: int, shuffle: bool, seed: int = 0, max_frames: int | None = None):
+    """Batches of similar audio length (sorted within shuffled pools of 50 batches), of at most batch_size
+    examples and, if max_frames is set, at most max_frames padded Whisper frames."""
     rng = random.Random(seed)
     idx = list(range(len(ex)))
     if shuffle:
@@ -115,8 +116,16 @@ def length_batches(ex: Examples, batch_size: int, shuffle: bool, seed: int = 0):
     pool = batch_size * 50
     batches = []
     for p in range(0, len(idx), pool):
-        part = sorted(idx[p:p + pool], key=ex.frames)
-        batches += [part[i:i + batch_size] for i in range(0, len(part), batch_size)]
+        current = []
+        for i in sorted(idx[p:p + pool], key=ex.frames):
+            # Sorted ascending, so the newest example sets the padded length.
+            if current and (len(current) == batch_size or
+                            (max_frames and ex.frames(i) * (len(current) + 1) > max_frames)):
+                batches.append(current)
+                current = []
+            current.append(i)
+        if current:
+            batches.append(current)
     if shuffle:
         rng.shuffle(batches)
     return batches
