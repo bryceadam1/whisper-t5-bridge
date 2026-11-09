@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import collections
 import json
+import random
 import time
 from pathlib import Path
 
@@ -28,6 +29,13 @@ from whisper_t5_bridge.audio import HOP, LogMel, SAMPLE_RATE, SILENCE_SECONDS, e
 from whisper_t5_bridge.student import load_whisper, whisper_transcribe
 
 MAX_SECONDS = 25.0
+LEAD_IN = (0.1, 0.4)  # seconds of silence prepended: the TTS starts speech almost at sample 0, which
+                      # clips onsets for Whisper; real push-to-talk audio has some lead-in anyway
+
+
+def with_lead_in(audio: np.ndarray, clip_id: str) -> np.ndarray:
+    seconds = random.Random(clip_id).uniform(*LEAD_IN)
+    return np.concatenate([np.zeros(int(seconds * SAMPLE_RATE), np.float32), audio])
 
 
 def enc_frames(n_samples: int, window: str) -> int:
@@ -60,8 +68,9 @@ def main():
     windows = ["truncated"] + (["full"] if args.split != "train" else [])
     print(f"{len(clips)} clips, windows {windows}", flush=True)
 
-    audio = {c["id"]: sf.read(str(Path(args.audio) / c["path"]), dtype="float32")[0] for c in clips}
-    meta = {c["id"]: {"id": c["id"], "speaker": c["speaker"], "duration": c["duration"],
+    audio = {c["id"]: with_lead_in(sf.read(str(Path(args.audio) / c["path"]), dtype="float32")[0], c["id"])
+             for c in clips}
+    meta = {c["id"]: {"id": c["id"], "speaker": c["speaker"], "duration": round(len(audio[c["id"]]) / SAMPLE_RATE, 3),
                       "finished": c["finished"]} for c in clips}
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)

@@ -20,6 +20,7 @@ import torch
 from whisper_t5_bridge.audio import LogMel, encode, window_samples
 from whisper_t5_bridge.bridge import load_bridge
 from whisper_t5_bridge.student import encode_text, greedy, load_t5, load_whisper, whisper_transcribe
+from scripts.whisper_features import with_lead_in
 
 
 def timed(fn):
@@ -51,7 +52,7 @@ def main():
     records = records[: args.n + 3]
     rows = []
     for k, r in enumerate(records):
-        audio = sf.read(str(Path(args.audio) / clips[r["id"]]["path"]), dtype="float32")[0]
+        audio = with_lead_in(sf.read(str(Path(args.audio) / clips[r["id"]]["path"]), dtype="float32")[0], r["id"])
         states, t_enc = timed(lambda: encode(whisper.model.encoder, logmel(torch.from_numpy(window_samples(audio, "truncated")))[None]))
 
         def bridge_path():
