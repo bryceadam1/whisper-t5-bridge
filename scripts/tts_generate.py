@@ -33,6 +33,7 @@ MODEL_ID = "Edge0/Audio8-TTS-Realistic-Air"
 MODEL_REVISION = "23c305cc013fde378edb459f538317043c993a74"
 FRAMES_PER_SECOND = 44100 / 2048
 MAX_SECONDS = 25.0
+LENGTH_MARGIN = 1.8  # generation budget: this many times the longest expected raw duration in a batch, + 2 s
 TARGET_SECONDS = 21.0
 TEMPO_RANGE = (0.9, 1.15)
 SAMPLING = dict(temperature=0.8, top_p=0.95, top_k=50, do_sample=True)
@@ -40,6 +41,11 @@ SAMPLING = dict(temperature=0.8, top_p=0.95, top_k=50, do_sample=True)
 
 def stable_rng(*parts) -> random.Random:
     return random.Random(int(hashlib.sha1("|".join(map(str, parts)).encode()).hexdigest()[:12], 16))
+
+
+def batch_seconds(batch) -> float:
+    raw = max(j["est_seconds"] * j["tempo"] for j in batch)
+    return min(MAX_SECONDS / TEMPO_RANGE[0], LENGTH_MARGIN * raw + 2.0)
 
 
 def plan(items: list[dict], voices: list[dict], split: str) -> list[dict]:
@@ -94,10 +100,15 @@ class TTS:
         torch = self.torch
         codes = [self.reference_codes(p) for p in ref_paths]
         inputs = self.processor(text=texts, reference_codes=codes, reference_text=ref_texts, return_tensors="pt")
+        max_new = int(max_seconds * FRAMES_PER_SECOND) + 8
+        # The model sizes its KV cache, and attends over it every step, at config.max_seq_len (2048).
+        # Both read the config at call time, so size it to this batch's prompt plus output instead.
+        width = int((inputs["prefix_attention_mask"].sum(1) + inputs["reference_code_lengths"]
+                     + inputs["suffix_attention_mask"].sum(1)).max())
+        self.model.config.max_seq_len = min(2048, width + max_new + 1)
         inputs = {k: v.to(self.device) for k, v in inputs.items()}
         with torch.inference_mode():
-            out = self.model.generate(**inputs, max_new_tokens=int(max_seconds * FRAMES_PER_SECOND) + 8,
-                                      return_dict_in_generate=True, **SAMPLING)
+            out = self.model.generate(**inputs, max_new_tokens=max_new, return_dict_in_generate=True, **SAMPLING)
             wavs, lengths = self.model.decode_audio(out.codes)
         import torchaudio.functional as AF
 
@@ -160,7 +171,7 @@ def run(jobs, tts, out_dir: Path, voices_dir: Path, batch_size: int, chunk: int 
         for b in range(0, len(part), batch_size):
             batch = part[b:b + batch_size]
             results = tts.generate([j["text"] for j in batch], [voices_dir / j["ref_clip"] for j in batch],
-                                   [j["ref_text"] for j in batch], MAX_SECONDS / TEMPO_RANGE[0])
+                                   [j["ref_text"] for j in batch], batch_seconds(batch))
             for job, (audio, finished) in zip(batch, results):
                 audio_s += len(audio) / 16000
                 pool.submit(write, job, audio, finished)
@@ -171,15 +182,16 @@ def run(jobs, tts, out_dir: Path, voices_dir: Path, batch_size: int, chunk: int 
     pool.shutdown(wait=True)
 
 
-def benchmark(jobs, tts, voices_dir: Path, sizes=(1, 8, 16, 32, 48, 64)):
+def benchmark(jobs, tts, voices_dir: Path, sizes=(16, 32, 64, 128)):
     rng = random.Random(0)
-    sample = rng.sample(jobs, 64)
+    sample = rng.sample(jobs, 512)
     for bs in sizes:
-        batch = sample[:bs]
+        # as in run(): a batch of neighbours in expected length
+        batch = sorted(sample, key=lambda j: j["est_seconds"])[256 - bs // 2: 256 + (bs + 1) // 2]
         tts.generate([batch[0]["text"]], [voices_dir / batch[0]["ref_clip"]], [batch[0]["ref_text"]], 5)  # warm
         t = time.time()
         res = tts.generate([j["text"] for j in batch], [voices_dir / j["ref_clip"] for j in batch],
-                           [j["ref_text"] for j in batch], MAX_SECONDS / TEMPO_RANGE[0])
+                           [j["ref_text"] for j in batch], batch_seconds(batch))
         el = time.time() - t
         secs = sum(len(a) for a, _ in res) / 16000
         print(f"batch {bs:3}: {secs:7.1f} s audio in {el:6.1f} s -> {secs / el:6.1f}x realtime, "
