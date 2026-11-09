@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import contextlib
 import math
+import zlib
 
 import torch
 import torch.nn as nn
@@ -135,24 +136,53 @@ def greedy(t5, enc_states, enc_mask, max_new_tokens=MAX_NEW_TOKENS):
     return out[:, 1:]  # drop the decoder start token
 
 
-@torch.no_grad()
-def whisper_transcribe(whisper, tokenizer, enc_states, max_new_tokens=128):
-    """Greedy Whisper decoding from precomputed encoder states of any window length (one utterance).
+def compression_ratio(text: str) -> float:
+    data = text.encode()
+    return len(data) / max(1, len(zlib.compress(data)))
 
-    Prompt for an English-only model: <|startoftranscript|><|notimestamps|>."""
-    dec = whisper.model.decoder
+
+@torch.no_grad()
+def _whisper_decode(whisper, tokenizer, enc_states, temperature, generator, max_new_tokens):
+    dec, cfg = whisper.model.decoder, whisper.generation_config
     sot = tokenizer.convert_tokens_to_ids("<|startoftranscript|>")
     nots = tokenizer.convert_tokens_to_ids("<|notimestamps|>")
     eot = tokenizer.eos_token_id
+    suppress = torch.tensor(list(cfg.suppress_tokens or []), device=enc_states.device, dtype=torch.long)
+    begin_suppress = torch.tensor(list(cfg.begin_suppress_tokens or []), device=enc_states.device, dtype=torch.long)
     ids = torch.tensor([[sot, nots]], device=enc_states.device)
     past, out = None, []
-    for _ in range(max_new_tokens):
+    for step in range(max_new_tokens):
         o = dec(input_ids=ids if past is None else ids[:, -1:], encoder_hidden_states=enc_states,
                 past_key_values=past, use_cache=True)
         past = o.past_key_values
-        nxt = int(whisper.proj_out(o.last_hidden_state[:, -1]).argmax(-1))
+        logits = whisper.proj_out(o.last_hidden_state[:, -1]).float()[0]
+        logits[suppress] = -float("inf")
+        if step == 0:
+            logits[begin_suppress] = -float("inf")
+        if temperature == 0:
+            nxt = int(logits.argmax())
+        else:
+            probs = torch.softmax(logits / temperature, -1)
+            nxt = int(torch.multinomial(probs.cpu(), 1, generator=generator))
         if nxt == eot:
             break
         out.append(nxt)
         ids = torch.cat([ids, torch.tensor([[nxt]], device=ids.device)], dim=1)
     return tokenizer.decode(out, skip_special_tokens=True).strip()
+
+
+@torch.no_grad()
+def whisper_transcribe(whisper, tokenizer, enc_states, max_new_tokens=128,
+                       temperatures=(0.0, 0.2, 0.4, 0.6, 0.8, 1.0), compression_ratio_threshold=2.4):
+    """Whisper decoding from precomputed encoder states of any window length (one utterance), following
+    openai/whisper's defaults: suppress_tokens and begin_suppress_tokens from the generation config,
+    greedy first, and temperature fallback while the output's gzip compression ratio exceeds 2.4
+    (the repetition loops that short windows are prone to). Seeded, so results are reproducible.
+
+    Prompt for an English-only model: <|startoftranscript|><|notimestamps|>."""
+    generator = torch.Generator().manual_seed(0)
+    for t in temperatures:
+        text = _whisper_decode(whisper, tokenizer, enc_states, t, generator, max_new_tokens)
+        if compression_ratio(text) <= compression_ratio_threshold:
+            break
+    return text
