@@ -4,6 +4,8 @@
 set -euo pipefail
 
 nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv
+# The image's root LV is ~30 GB regardless of the boot volume size; grow it to fill the volume.
+sudo /usr/libexec/oci-growfs -y >/dev/null
 sudo dnf install -y -q git tmux >/dev/null
 command -v uv >/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
 export PATH="$HOME/.local/bin:$PATH"
