@@ -61,7 +61,9 @@ class Examples:
         for r, b, a in zip(self.records, before_ids, after_ids):
             r["before_ids"], r["after_ids"], r["ctc_ids"] = b, a, ctc[r["id"]]
         arr = np.load(features_dir / f"{split}_{window}.npy", mmap_mode="r")
-        self.states = np.ascontiguousarray(arr) if in_memory else arr
+        # np.array copies a memmap into RAM (np.ascontiguousarray would return the memmap itself, leaving every
+        # batch to fault pages in from disk at random).
+        self.states = np.array(arr) if in_memory else arr
         self.window = window
 
     def __len__(self):
