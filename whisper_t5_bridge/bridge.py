@@ -158,7 +158,11 @@ class Bridge(nn.Module):
         }
 
 
-def save_bridge(bridge: Bridge, path: str, extra_meta: dict | None = None):
+def save_bridge(bridge, path: str, extra_meta: dict | None = None):
+    if not isinstance(bridge, Bridge):  # the Whisper-decoder Q-Former
+        from whisper_t5_bridge.qbridge import save_qbridge
+
+        return save_qbridge(bridge, path, extra_meta)
     state = {k: v.detach().float().contiguous().cpu() for k, v in bridge.state_dict().items()}
     spec = bridge.spec()
     assert set(state) == set(spec["tensors"]), set(state) ^ set(spec["tensors"])
@@ -169,11 +173,18 @@ def save_bridge(bridge: Bridge, path: str, extra_meta: dict | None = None):
     return spec
 
 
-def load_bridge(path: str) -> Bridge:
+def load_bridge(path: str):
+    """Load either bridge type (conv bridge or Whisper-decoder Q-Former) from its safetensors file."""
     from safetensors import safe_open
 
     with safe_open(path, "pt") as f:
         spec = json.loads(f.metadata()["spec"])
+    if spec["format"].startswith("whisper-t5-bridge/qformer"):
+        from whisper_t5_bridge.qbridge import QBridge, QBridgeConfig
+
+        bridge = QBridge(QBridgeConfig(**spec["config"]))
+        bridge.load_state_dict(load_file(path))
+        return bridge
     bridge = Bridge(BridgeConfig(**spec["config"]))
     bridge.load_state_dict(load_file(path))
     return bridge

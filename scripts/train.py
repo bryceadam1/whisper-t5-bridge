@@ -47,8 +47,26 @@ def augment(batch, n_masks, max_frac, noise):
     return {**batch, "states": states}
 
 
+def align_loss(t5, audio, audio_mask, batch):
+    """Input-side alignment (after DiVA): bridge output i should match T5's encoder state for token i of the
+    spoken text (encoded alone, with </s>). Relative MSE over positions both sequences have."""
+    eos = t5.config.eos_token_id
+    lens = batch["ctc_lens"] + 1
+    ids = torch.zeros(len(lens), int(lens.max()), dtype=torch.long, device=audio.device)
+    for j, n in enumerate(batch["ctc_lens"].tolist()):
+        ids[j, :n] = batch["ctc_ids"][j, :n]
+        ids[j, n] = eos
+    text_mask = torch.arange(ids.shape[1], device=audio.device)[None, :] < lens[:, None]
+    with torch.no_grad():
+        target = encode_text(t5, ids, text_mask.long()).float()
+    n = min(audio.shape[1], target.shape[1])
+    both = (text_mask[:, :n] & audio_mask[:, :n]).float()[..., None]
+    err = ((audio[:, :n].float() - target[:, :n]) ** 2 * both).sum()
+    return err / ((target[:, :n] ** 2) * both).sum().clamp_min(1e-8)
+
+
 def step_loss(t5, bridge, batch, w, autocast, ctc_head=None):
-    """w: weights {"ce", "repeat", "ctc"}. Returns total loss and a dict of its parts."""
+    """w: weights {"ce", "repeat", "ctc", "align"}. Returns total loss and a dict of its parts."""
     with autocast():
         enc, mask, audio, audio_mask = student_encoder_states(t5, bridge, batch, return_audio=True)
         logits = decoder_logits(t5, enc, mask, batch["labels"])
@@ -68,6 +86,9 @@ def step_loss(t5, bridge, batch, w, autocast, ctc_head=None):
         parts["ctc"] = F.ctc_loss(logp, batch["ctc_ids"], audio_mask.sum(1), batch["ctc_lens"],
                                   blank=ctc_head.out_features - 1, zero_infinity=True)
         loss = loss + w["ctc"] * parts["ctc"]
+    if w.get("align"):
+        parts["align"] = align_loss(t5, audio, audio_mask, batch)
+        loss = loss + w["align"] * parts["align"]
     return loss, parts
 
 
@@ -105,6 +126,11 @@ def main():
     ap.add_argument("--state-noise", type=float, default=0.0)
     ap.add_argument("--injection", choices=["decoder", "encoder_input"], default="decoder")
     ap.add_argument("--n-conv", type=int, choices=[1, 2], default=1)
+    ap.add_argument("--bridge-type", choices=["conv", "qformer"], default="conv",
+                    help="qformer: queries through Whisper base.en's decoder layers, initialised from it")
+    ap.add_argument("--queries-per-second", type=float, default=6.0)
+    ap.add_argument("--pretrained-lr-scale", type=float, default=0.2)
+    ap.add_argument("--align-weight", type=float, default=0.0, help="input-side alignment to T5 encoder states")
     ap.add_argument("--repeat", action="store_true")
     ap.add_argument("--repeat-weight", type=float, default=1.0)
     ap.add_argument("--ctc-weight", type=float, default=0.0)
@@ -138,8 +164,17 @@ def main():
     if args.init_bridge:
         bridge = load_bridge(args.init_bridge).to(device)
     else:
-        bridge = Bridge(BridgeConfig(n_layers=args.layers, dropout=args.dropout, n_conv=args.n_conv,
-                                     injection=args.injection)).to(device)
+        if args.bridge_type == "qformer":
+            from transformers import WhisperForConditionalGeneration
+            from whisper_t5_bridge.qbridge import QBridge, QBridgeConfig
+
+            whisper = WhisperForConditionalGeneration.from_pretrained("openai/whisper-base.en")
+            bridge = QBridge.from_whisper(whisper, QBridgeConfig(queries_per_second=args.queries_per_second,
+                                                                 dropout=args.dropout)).to(device)
+            del whisper
+        else:
+            bridge = Bridge(BridgeConfig(n_layers=args.layers, dropout=args.dropout, n_conv=args.n_conv,
+                                         injection=args.injection)).to(device)
         # Calibrate the final norm against what the bridge stands in for: T5 encoder outputs on real prompts,
         # or the input embeddings of the spoken inputs' tokens.
         sample = [train.records[i] for i in range(0, len(train), max(1, len(train) // 512))]
@@ -150,12 +185,18 @@ def main():
                       else t5.shared(enc.input_ids))
             rms = init_output_scale(bridge, target, enc.attention_mask.bool())
         print(f"target RMS {rms:.3f} ({args.injection})", flush=True)
-    groups = [{"params": list(bridge.parameters()), "lr": args.lr}]
+    if hasattr(bridge, "new_parameters"):
+        # Whisper-initialised layers train gently; the new query, projection and norm at the full rate.
+        new = {id(p) for p in bridge.new_parameters()}
+        groups = [{"params": [p for p in bridge.parameters() if id(p) in new], "lr": args.lr},
+                  {"params": [p for p in bridge.parameters() if id(p) not in new], "lr": args.lr * args.pretrained_lr_scale}]
+    else:
+        groups = [{"params": list(bridge.parameters()), "lr": args.lr}]
     ctc_head = None
     if args.ctc_weight:
         ctc_head = torch.nn.Linear(bridge.config.d_model, t5.config.vocab_size + 1).to(device)  # last = blank
         groups[0]["params"] += list(ctc_head.parameters())
-    weights = {"ce": args.ce_weight, "repeat": args.repeat_weight, "ctc": args.ctc_weight}
+    weights = {"ce": args.ce_weight, "repeat": args.repeat_weight, "ctc": args.ctc_weight, "align": args.align_weight}
     adapters = {}
     if args.lora_rank:
         adapters = add_cross_attn_lora(t5, rank=args.lora_rank)
