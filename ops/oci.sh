@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Manage the single GPU instance for this project and keep a running total of GPU hours.
 #
-#   ops/oci.sh launch | start | stop | status | ip | ssh [cmd...] | hours
+#   ops/oci.sh launch | start | stop | status | ip | ssh [cmd...] | hours | allow-me
 #
 # Resource ids live in ~/.config/whisper-t5-bridge/oci.env (outside the repo); OCI credentials in
 # ~/.oci. Every start/stop is appended to ops/usage_log.csv. Billing for VM.GPU.A10 shapes pauses while
@@ -68,5 +68,10 @@ case "${1:-status}" in
   ip) ip ;;
   ssh) shift; exec ssh -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 "opc@$(ip)" "$@" ;;
   hours) hours ;;
-  *) echo "usage: $0 launch|start|stop|status|ip|ssh|hours"; exit 1 ;;
+  allow-me)  # point the SSH-only firewall rule at this machine's current public IP
+    me=$(curl -s https://checkip.amazonaws.com)
+    oci network security-list update --security-list-id "$SECLIST" --force --wait-for-state AVAILABLE \
+      --ingress-security-rules "[{\"source\":\"$me/32\",\"protocol\":\"6\",\"isStateless\":false,\"tcpOptions\":{\"destinationPortRange\":{\"min\":22,\"max\":22}}}]" >/dev/null
+    echo "SSH allowed from $me" ;;
+  *) echo "usage: $0 launch|start|stop|status|ip|ssh|hours|allow-me"; exit 1 ;;
 esac
