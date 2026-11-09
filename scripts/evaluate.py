@@ -53,7 +53,7 @@ def run(args):
     results = {}
     for split in args.splits:
         for window in args.windows:
-            ex = Examples(args.features, args.teacher, split, window=window)
+            ex = Examples(args.features, args.teacher, split, tok, args.subset, window=window)
             rows = []
             for idxs in length_batches(ex, args.batch_size, shuffle=False):
                 b = to_device(ex.collate(idxs), device)
@@ -66,8 +66,7 @@ def run(args):
                 # name -> (encoder states, mask, decoder uses the LoRA adapters)
                 systems = {}
                 if bridge is not None:
-                    systems["bridge"] = (*student_encoder_states(t5, bridge, b["instr_ids"], b["instr_mask"],
-                                                                 b["states"], b["lens"]), True)
+                    systems["bridge"] = (*student_encoder_states(t5, bridge, b), True)
                 key = "transcript_truncated" if window == "truncated" else "transcript_full"
                 prompts = [r["prompt"].replace(r["input"], ex.meta[r["id"]][key], 1) for r in recs]
                 systems["asr_control"] = (*text_states(tok, t5, prompts, device), False)
@@ -123,6 +122,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--features", default="data/features")
     ap.add_argument("--teacher", default="data/teacher")
+    ap.add_argument("--subset", default="data/flan_subset")
     ap.add_argument("--bridge", default=None)
     ap.add_argument("--lora", default=None)
     ap.add_argument("--splits", nargs="+", default=["eval_seen", "eval_heldout"])

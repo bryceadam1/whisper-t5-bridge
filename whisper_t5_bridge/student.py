@@ -94,13 +94,42 @@ def encode_text(t5, ids, mask):
     return t5.encoder(input_ids=ids, attention_mask=mask).last_hidden_state
 
 
-def student_encoder_states(t5, bridge, instr_ids, instr_mask, whisper_states, whisper_lens):
-    """(B, Li + La, 512) encoder states and mask: [T5(instruction) ; bridge(audio)]."""
-    with torch.no_grad():
-        text = encode_text(t5, instr_ids, instr_mask)
-    audio, audio_mask = bridge(whisper_states, whisper_lens)
-    states = torch.cat([text, audio.to(text.dtype)], dim=1)
-    return states, torch.cat([instr_mask.bool(), audio_mask], dim=1)
+def encoder_input(t5, before: list[list[int]], soft: torch.Tensor, soft_lens: list[int], after: list[list[int]]):
+    """inputs_embeds and mask for [embed(before) ; soft tokens ; embed(after) ; embed(</s>)] per example.
+
+    before/after: token ids of the prompt text around the input, without special tokens."""
+    emb, eos = t5.shared, t5.config.eos_token_id
+    rows = []
+    for j in range(len(before)):
+        tail = torch.tensor(after[j] + [eos], device=soft.device)
+        parts = [soft[j, : soft_lens[j]].to(emb.weight.dtype), emb(tail)]
+        if before[j]:
+            parts.insert(0, emb(torch.tensor(before[j], device=soft.device)))
+        rows.append(torch.cat(parts))
+    n = max(len(r) for r in rows)
+    x = soft.new_zeros(len(rows), n, soft.shape[-1], dtype=emb.weight.dtype)
+    mask = torch.zeros(len(rows), n, dtype=torch.bool, device=soft.device)
+    for j, r in enumerate(rows):
+        x[j, : len(r)], mask[j, : len(r)] = r, True
+    return x, mask
+
+
+def student_encoder_states(t5, bridge, batch, return_audio=False):
+    """Encoder states and mask for the decoder.
+
+    injection "decoder":        [T5(instruction) ; bridge(audio)]
+    injection "encoder_input":  T5([before ; bridge(audio) ; after ; </s>]), gradients flow through T5's
+                                frozen encoder into the bridge."""
+    audio, audio_mask = bridge(batch["states"], batch["lens"])
+    if bridge.config.injection == "encoder_input":
+        x, mask = encoder_input(t5, batch["before"], audio, audio_mask.sum(1).tolist(), batch["after"])
+        states = t5.encoder(inputs_embeds=x, attention_mask=mask.long()).last_hidden_state
+    else:
+        with torch.no_grad():
+            text = encode_text(t5, batch["instr_ids"], batch["instr_mask"])
+        states = torch.cat([text, audio.to(text.dtype)], dim=1)
+        mask = torch.cat([batch["instr_mask"].bool(), audio_mask], dim=1)
+    return (states, mask, audio, audio_mask) if return_audio else (states, mask)
 
 
 def decoder_logits(t5, enc_states, enc_mask, labels):

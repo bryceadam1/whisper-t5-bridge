@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import random
 from pathlib import Path
@@ -9,24 +10,56 @@ from pathlib import Path
 import numpy as np
 import torch
 
+REPEAT_INSTRUCTION = "Write down exactly what was said:"
+VAL_PERCENT = 3
+
+
+def is_val(clip_id: str) -> bool:
+    """Deterministic 3% of training clips held out for checkpoint selection."""
+    return int(hashlib.sha1(clip_id.encode()).hexdigest()[:8], 16) % 100 < VAL_PERCENT
+
 
 class Examples:
     """Teacher records (one per rendering) paired with one clip's encoder states.
 
-    split: "train", "eval_seen" or "eval_heldout"; window: "truncated" or "full"."""
+    split: "train", "eval_seen" or "eval_heldout"; window: "truncated" or "full".
+    part (train only): "train" excludes the validation clips, "val" keeps only them, None keeps all.
+    repeat: also add one record per clip whose target is the spoken text itself (cross-entropy only).
+    """
 
-    def __init__(self, features_dir, teacher_dir, split, window="truncated", keep_only=True,
-                 renderings=None, in_memory=True):
+    def __init__(self, features_dir, teacher_dir, split, tokenizer, subset_dir="data/flan_subset",
+                 window="truncated", keep_only=True, part=None, repeat=False, in_memory=True):
         features_dir, teacher_dir = Path(features_dir), Path(teacher_dir)
         self.meta = {}
         for line in open(features_dir / f"{split}_meta.jsonl"):
             m = json.loads(line)
-            if m.get("keep", True) or not keep_only:
+            if (m.get("keep", True) or not keep_only) and (part is None or is_val(m["id"]) == (part == "val")):
                 self.meta[m["id"]] = m
-        records = torch.load(teacher_dir / ("train.pt" if split == "train" else "eval.pt"), weights_only=False)
+        src = "train" if split == "train" else "eval"
+        spoken = {json.loads(l)["id"]: json.loads(l)["tts_text"] for l in open(Path(subset_dir) / f"{src}.jsonl")}
+        records = torch.load(teacher_dir / f"{src}.pt", weights_only=False)
         # Teacher outputs that never reached EOS are repetition loops; leave them out.
-        self.records = [r for r in records if r["id"] in self.meta and r["finished"]
-                        and (renderings is None or r["rendering"] < renderings)]
+        self.records = [dict(r, kind="task") for r in records if r["id"] in self.meta and r["finished"]]
+        if repeat:
+            target = tokenizer([spoken[i] for i in self.meta]).input_ids
+            instr = tokenizer(REPEAT_INSTRUCTION).input_ids
+            self.records += [{"id": i, "kind": "repeat", "task": "repeat", "family": "repeat",
+                              "prompt": f"{REPEAT_INSTRUCTION} {spoken[i]}", "input": spoken[i],
+                              "instruction_ids": instr, "out_ids": torch.tensor(t, dtype=torch.int32)}
+                             for i, t in zip(self.meta, target)]
+        # Prompt text around the input (for encoder-input injection) and the spoken text's tokens (for CTC).
+        befores, afters = [], []
+        for r in self.records:
+            before, sep, after = r["prompt"].partition(r["input"])
+            if not sep:
+                before, after = tokenizer.decode(r["instruction_ids"], skip_special_tokens=True), ""
+            befores.append(before.strip())
+            afters.append(after.strip())
+        before_ids = tokenizer(befores, add_special_tokens=False).input_ids
+        after_ids = tokenizer(afters, add_special_tokens=False).input_ids
+        ctc = dict(zip(self.meta, tokenizer([spoken[i] for i in self.meta], add_special_tokens=False).input_ids))
+        for r, b, a in zip(self.records, before_ids, after_ids):
+            r["before_ids"], r["after_ids"], r["ctc_ids"] = b, a, ctc[r["id"]]
         arr = np.load(features_dir / f"{split}_{window}.npy", mmap_mode="r")
         self.states = np.ascontiguousarray(arr) if in_memory else arr
         self.window = window
@@ -48,12 +81,16 @@ class Examples:
         b, t = len(recs), max(len(s) for s in states)
         li = max(len(r["instruction_ids"]) for r in recs)
         lo = max(len(r["out_ids"]) for r in recs)
-        k = recs[0]["topk_ids"].shape[1]
+        lc = max(len(r["ctc_ids"]) for r in recs)
+        k = next((r["topk_ids"].shape[1] for r in recs if r["kind"] == "task"), 1)
         batch = {
             "states": torch.zeros(b, t, 512), "lens": torch.tensor([len(s) for s in states]),
             "instr_ids": torch.full((b, li), pad_id), "instr_mask": torch.zeros(b, li, dtype=torch.long),
+            "before": [r["before_ids"] for r in recs], "after": [r["after_ids"] for r in recs],
             "labels": torch.full((b, lo), -100), "topk_ids": torch.zeros(b, lo, k, dtype=torch.long),
-            "topk_logp": torch.zeros(b, lo, k), "records": recs,
+            "topk_logp": torch.zeros(b, lo, k), "kd": torch.tensor([r["kind"] == "task" for r in recs]),
+            "ctc_ids": torch.zeros(b, lc, dtype=torch.long), "ctc_lens": torch.tensor([len(r["ctc_ids"]) for r in recs]),
+            "records": recs,
         }
         for j, (r, s) in enumerate(zip(recs, states)):
             batch["states"][j, : len(s)] = torch.from_numpy(np.asarray(s, dtype=np.float32))
@@ -62,8 +99,10 @@ class Examples:
             batch["instr_mask"][j, : len(ids)] = 1
             n = len(r["out_ids"])
             batch["labels"][j, :n] = r["out_ids"].long()
-            batch["topk_ids"][j, :n] = r["topk_ids"].long()
-            batch["topk_logp"][j, :n] = r["topk_logp"].float()
+            if r["kind"] == "task":
+                batch["topk_ids"][j, :n] = r["topk_ids"].long()
+                batch["topk_logp"][j, :n] = r["topk_logp"].float()
+            batch["ctc_ids"][j, : len(r["ctc_ids"])] = torch.tensor(r["ctc_ids"])
         return batch
 
 

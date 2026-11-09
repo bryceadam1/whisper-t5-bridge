@@ -19,7 +19,7 @@ import torch
 
 from whisper_t5_bridge.audio import LogMel, encode, window_samples
 from whisper_t5_bridge.bridge import load_bridge
-from whisper_t5_bridge.student import encode_text, greedy, load_t5, load_whisper, whisper_transcribe
+from whisper_t5_bridge.student import encode_text, encoder_input, greedy, load_t5, load_whisper, whisper_transcribe
 from scripts.whisper_features import with_lead_in
 
 
@@ -57,9 +57,14 @@ def main():
 
         def bridge_path():
             a, am = bridge(states)
-            ids = torch.tensor([r["instruction_ids"]])
-            text = encode_text(t5, ids, torch.ones_like(ids))
-            enc = torch.cat([text, a], 1)
+            if bridge.config.injection == "encoder_input":
+                before, _, after = r["prompt"].partition(r["input"])
+                ids = lambda text: tok(text.strip(), add_special_tokens=False).input_ids
+                x, mask = encoder_input(t5, [ids(before)], a, [a.shape[1]], [ids(after)])
+                enc = t5.encoder(inputs_embeds=x, attention_mask=mask.long()).last_hidden_state
+            else:
+                ids = torch.tensor([r["instruction_ids"]])
+                enc = torch.cat([encode_text(t5, ids, torch.ones_like(ids)), a], 1)
             return greedy(t5, enc, torch.ones(enc.shape[:2], dtype=torch.bool))
 
         (b_out, t_bridge_total) = timed(bridge_path)
