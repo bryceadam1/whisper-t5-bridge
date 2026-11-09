@@ -150,7 +150,8 @@ def finish(job, audio, finished, out_dir: Path):
     return rec
 
 
-def run(jobs, tts, out_dir: Path, voices_dir: Path, batch_size: int, chunk: int = 512):
+def run(jobs, tts, out_dir: Path, voices_dir: Path, batch_size: int, max_minutes: float | None = None,
+        chunk: int = 512):
     manifest = out_dir / "manifest.jsonl"
     done = set()
     if manifest.exists():
@@ -166,6 +167,9 @@ def run(jobs, tts, out_dir: Path, voices_dir: Path, batch_size: int, chunk: int 
             fh.write(json.dumps(rec) + "\n")
 
     for c in range(0, len(jobs), chunk):
+        if max_minutes is not None and (time.time() - t0) / 60 > max_minutes:
+            print(f"time limit of {max_minutes} min reached; stopping cleanly", flush=True)
+            break
         # Within a chunk (still in priority order overall), batch similar lengths together.
         part = sorted(jobs[c:c + chunk], key=lambda j: j["est_seconds"])
         for b in range(0, len(part), batch_size):
@@ -205,7 +209,8 @@ def main():
     ap.add_argument("--out", default="data/audio")
     ap.add_argument("--split", choices=["train", "eval_seen", "eval_heldout"], default="train")
     ap.add_argument("--limit", type=int, default=None, help="first N items in priority order")
-    ap.add_argument("--batch-size", type=int, default=32)
+    ap.add_argument("--batch-size", type=int, default=128)
+    ap.add_argument("--max-minutes", type=float, default=None, help="stop cleanly between chunks after this")
     ap.add_argument("--benchmark", action="store_true")
     ap.add_argument("--fake", action="store_true", help="local pipeline test without the TTS model")
     args = ap.parse_args()
@@ -218,7 +223,7 @@ def main():
     if args.benchmark:
         benchmark(jobs, tts, Path(args.voices))
     else:
-        run(jobs, tts, Path(args.out), Path(args.voices), args.batch_size)
+        run(jobs, tts, Path(args.out), Path(args.voices), args.batch_size, args.max_minutes)
 
 
 if __name__ == "__main__":
