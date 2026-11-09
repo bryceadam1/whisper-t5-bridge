@@ -37,6 +37,8 @@ class Examples:
                 self.meta[m["id"]] = m
         src = "eval" if split.startswith("eval") else "train"
         spoken = {json.loads(l)["id"]: json.loads(l)["tts_text"] for l in open(Path(subset_dir) / f"{src}.jsonl")}
+        # A subset may cover only some of the split's clips (e.g. generated tasks for 12k of 28k utterances).
+        self.meta = {k: v for k, v in self.meta.items() if k in spoken}
         records = torch.load(teacher_dir / f"{src}.pt", weights_only=False)
         # Teacher outputs that never reached EOS are repetition loops; leave them out.
         self.records = [dict(r, kind="task") for r in records if r["id"] in self.meta and r["finished"]]
