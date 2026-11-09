@@ -27,6 +27,20 @@ from whisper_t5_bridge.student import (add_cross_attn_lora, decoder_logits, enco
 from safetensors.torch import save_file
 
 
+def augment(batch, n_masks, max_frac, noise):
+    """SpecAugment-style regulariser on the Whisper states: zero n_masks random time spans, each up to
+    max_frac of the clip, and add Gaussian noise of std `noise` (relative to the states' std)."""
+    states, lens = batch["states"].clone(), batch["lens"]
+    for j, n in enumerate(lens.tolist()):
+        for _ in range(n_masks):
+            width = int(torch.randint(0, max(1, int(max_frac * n)) + 1, ()).item())
+            start = int(torch.randint(0, max(1, n - width) + 1, ()).item())
+            states[j, start:start + width] = 0
+    if noise:
+        states = states + noise * states.std() * torch.randn_like(states)
+    return {**batch, "states": states}
+
+
 def step_loss(t5, bridge, batch, ce_weight, autocast):
     with autocast():
         enc, mask = student_encoder_states(t5, bridge, batch["instr_ids"], batch["instr_mask"],
@@ -68,6 +82,10 @@ def main():
     ap.add_argument("--lora-lr", type=float, default=2e-4)
     ap.add_argument("--eval-every", type=int, default=500)
     ap.add_argument("--val-size", type=int, default=600)
+    ap.add_argument("--dropout", type=float, default=0.1)
+    ap.add_argument("--time-masks", type=int, default=0, help="masked time spans per clip (0 = off)")
+    ap.add_argument("--mask-frac", type=float, default=0.05)
+    ap.add_argument("--state-noise", type=float, default=0.0)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -87,7 +105,7 @@ def main():
     if args.init_bridge:
         bridge = load_bridge(args.init_bridge).to(device)
     else:
-        bridge = Bridge(BridgeConfig(n_layers=args.layers)).to(device)
+        bridge = Bridge(BridgeConfig(n_layers=args.layers, dropout=args.dropout)).to(device)
         # Calibrate the final norm against T5 encoder outputs on real prompts.
         sample = [train.records[i]["prompt"] for i in range(0, len(train), max(1, len(train) // 512))]
         enc = tok(sample, return_tensors="pt", padding=True, truncation=True, max_length=256).to(device)
@@ -120,6 +138,8 @@ def main():
                 break
             set_lr(step)
             batch = to_device(train.collate(idxs), device)
+            if args.time_masks or args.state_noise:
+                batch = augment(batch, args.time_masks, args.mask_frac, args.state_noise)
             loss, kl, ce, agree = step_loss(t5, bridge, batch, args.ce_weight, autocast)
             opt.zero_grad(set_to_none=True)
             loss.backward()
