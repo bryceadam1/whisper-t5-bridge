@@ -118,3 +118,8 @@ audio is never used for training or results.
 One Oracle Cloud `VM.GPU.A10.1` ($2.00/h) in a dedicated compartment, managed with
 [`ops/oci.sh`](ops/oci.sh); every start and stop is logged in [`ops/usage_log.csv`](ops/usage_log.csv)
 for a running total. Budget: $15 in total.
+
+## Licence
+
+Code: [Apache-2.0](LICENSE). Data and models used keep their own licences (see the tables above);
+the bridge weights are not published yet.
