@@ -35,7 +35,7 @@ class Examples:
             m = json.loads(line)
             if (m.get("keep", True) or not keep_only) and (part is None or is_val(m["id"]) == (part == "val")):
                 self.meta[m["id"]] = m
-        src = "train" if split == "train" else "eval"
+        src = "eval" if split.startswith("eval") else "train"
         spoken = {json.loads(l)["id"]: json.loads(l)["tts_text"] for l in open(Path(subset_dir) / f"{src}.jsonl")}
         records = torch.load(teacher_dir / f"{src}.pt", weights_only=False)
         # Teacher outputs that never reached EOS are repetition loops; leave them out.
@@ -75,35 +75,60 @@ class Examples:
         o, n = m[f"{self.window}_offset"], m[f"{self.window}_frames"]
         return self.states[o:o + n]
 
-    def collate(self, idxs, pad_id=0):
+    def collate(self, idxs):
         recs = [self.records[i] for i in idxs]
-        states = [self.get_states(r["id"]) for r in recs]
-        b, t = len(recs), max(len(s) for s in states)
-        li = max(len(r["instruction_ids"]) for r in recs)
-        lo = max(len(r["out_ids"]) for r in recs)
-        lc = max(len(r["ctc_ids"]) for r in recs)
-        k = next((r["topk_ids"].shape[1] for r in recs if r["kind"] == "task"), 1)
-        batch = {
-            "states": torch.zeros(b, t, 512), "lens": torch.tensor([len(s) for s in states]),
-            "instr_ids": torch.full((b, li), pad_id), "instr_mask": torch.zeros(b, li, dtype=torch.long),
-            "before": [r["before_ids"] for r in recs], "after": [r["after_ids"] for r in recs],
-            "labels": torch.full((b, lo), -100), "topk_ids": torch.zeros(b, lo, k, dtype=torch.long),
-            "topk_logp": torch.zeros(b, lo, k), "kd": torch.tensor([r["kind"] == "task" for r in recs]),
-            "ctc_ids": torch.zeros(b, lc, dtype=torch.long), "ctc_lens": torch.tensor([len(r["ctc_ids"]) for r in recs]),
-            "records": recs,
-        }
-        for j, (r, s) in enumerate(zip(recs, states)):
-            batch["states"][j, : len(s)] = torch.from_numpy(np.asarray(s, dtype=np.float32))
-            ids = r["instruction_ids"]
-            batch["instr_ids"][j, : len(ids)] = torch.tensor(ids)
-            batch["instr_mask"][j, : len(ids)] = 1
-            n = len(r["out_ids"])
-            batch["labels"][j, :n] = r["out_ids"].long()
-            if r["kind"] == "task":
-                batch["topk_ids"][j, :n] = r["topk_ids"].long()
-                batch["topk_logp"][j, :n] = r["topk_logp"].float()
-            batch["ctc_ids"][j, : len(r["ctc_ids"])] = torch.tensor(r["ctc_ids"])
-        return batch
+        return make_batch(recs, [self.get_states(r["id"]) for r in recs])
+
+
+class ExampleSet:
+    """Several Examples sources (e.g. FLAN TTS clips and LibriSpeech) behind one index."""
+
+    def __init__(self, sources: list[Examples]):
+        self.sources = sources
+        self.index = [(s, i) for s in sources for i in range(len(s))]
+        self.records = [s.records[i] for s, i in self.index]
+        self.meta = {k: v for s in sources for k, v in s.meta.items()}
+
+    def __len__(self):
+        return len(self.index)
+
+    def frames(self, idx):
+        s, i = self.index[idx]
+        return s.frames(i)
+
+    def collate(self, idxs):
+        pairs = [self.index[i] for i in idxs]
+        return make_batch([s.records[i] for s, i in pairs], [s.get_states(s.records[i]["id"]) for s, i in pairs])
+
+
+def make_batch(recs, states, pad_id=0):
+    """Pad one batch: Whisper states, instruction and prompt-text ids, targets, teacher top-k, CTC labels."""
+    b, t = len(recs), max(len(s) for s in states)
+    li = max(len(r["instruction_ids"]) for r in recs)
+    lo = max(len(r["out_ids"]) for r in recs)
+    lc = max(len(r["ctc_ids"]) for r in recs)
+    k = next((r["topk_ids"].shape[1] for r in recs if r["kind"] == "task"), 1)
+    batch = {
+        "states": torch.zeros(b, t, 512), "lens": torch.tensor([len(s) for s in states]),
+        "instr_ids": torch.full((b, li), pad_id), "instr_mask": torch.zeros(b, li, dtype=torch.long),
+        "before": [r["before_ids"] for r in recs], "after": [r["after_ids"] for r in recs],
+        "labels": torch.full((b, lo), -100), "topk_ids": torch.zeros(b, lo, k, dtype=torch.long),
+        "topk_logp": torch.zeros(b, lo, k), "kd": torch.tensor([r["kind"] == "task" for r in recs]),
+        "ctc_ids": torch.zeros(b, lc, dtype=torch.long), "ctc_lens": torch.tensor([len(r["ctc_ids"]) for r in recs]),
+        "records": recs,
+    }
+    for j, (r, s) in enumerate(zip(recs, states)):
+        batch["states"][j, : len(s)] = torch.from_numpy(np.asarray(s, dtype=np.float32))
+        ids = r["instruction_ids"]
+        batch["instr_ids"][j, : len(ids)] = torch.tensor(ids)
+        batch["instr_mask"][j, : len(ids)] = 1
+        n = len(r["out_ids"])
+        batch["labels"][j, :n] = r["out_ids"].long()
+        if r["kind"] == "task":
+            batch["topk_ids"][j, :n] = r["topk_ids"].long()
+            batch["topk_logp"][j, :n] = r["topk_logp"].float()
+        batch["ctc_ids"][j, : len(r["ctc_ids"])] = torch.tensor(r["ctc_ids"])
+    return batch
 
 
 def length_batches(ex: Examples, batch_size: int, shuffle: bool, seed: int = 0, max_frames: int | None = None):

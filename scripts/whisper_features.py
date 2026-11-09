@@ -50,7 +50,9 @@ def main():
     ap.add_argument("--audio", default="data/audio")
     ap.add_argument("--subset", default="data/flan_subset")
     ap.add_argument("--out", default="data/features")
-    ap.add_argument("--split", choices=["train", "eval_seen", "eval_heldout"], required=True)
+    ap.add_argument("--split", choices=["train", "eval_seen", "eval_heldout", "libri"], required=True)
+    ap.add_argument("--skip-qc", action="store_true",
+                    help="real recordings with ground-truth transcripts: keep every clip within the length limit")
     ap.add_argument("--max-wer", type=float, default=0.3)
     ap.add_argument("--batch-size", type=int, default=64)
     args = ap.parse_args()
@@ -59,13 +61,13 @@ def main():
     dtype = torch.float16 if device == "cuda" else torch.float32
     fe, wtok, whisper = load_whisper(device, dtype)
     logmel = LogMel(fe.mel_filters).to(device)
-    src = "train" if args.split == "train" else "eval"
+    src = "eval" if args.split.startswith("eval") else "train"
     text_of = {json.loads(l)["id"]: json.loads(l)["tts_text"] for l in open(Path(args.subset) / f"{src}.jsonl")}
     clips = [json.loads(l) for l in open(Path(args.audio) / "manifest.jsonl")]
     clips = [c for c in clips if c["split"] == args.split]
     seen = set()
     clips = [c for c in clips if not (c["id"] in seen or seen.add(c["id"]))]
-    windows = ["truncated"] + (["full"] if args.split != "train" else [])
+    windows = ["truncated"] + (["full"] if args.split.startswith("eval") else [])
     print(f"{len(clips)} clips, windows {windows}", flush=True)
 
     audio = {c["id"]: with_lead_in(sf.read(str(Path(args.audio) / c["path"]), dtype="float32")[0], c["id"])
@@ -78,7 +80,10 @@ def main():
 
     # 1) Quality check: standard 30 s window transcription, batched.
     ids = [c["id"] for c in clips]
-    for b in range(0, len(ids), args.batch_size):
+    if args.skip_qc:
+        for m in meta.values():
+            m.update(transcript_full=None, wer=0.0, keep=bool(m["finished"] and m["duration"] <= MAX_SECONDS))
+    for b in range(0, 0 if args.skip_qc else len(ids), args.batch_size):
         chunk = ids[b:b + args.batch_size]
         feats = torch.stack([logmel(torch.from_numpy(window_samples(audio[i], "full")).to(device)) for i in chunk])
         with torch.no_grad():
@@ -110,7 +115,7 @@ def main():
                 assert states.shape[1] == n_frames, (states.shape, n_frames)
                 for i, s in zip(chunk, states):
                     arr[offsets[i]:offsets[i] + n_frames] = s.float().cpu().numpy().astype(np.float16)
-                    if window == "truncated" and args.split != "train":
+                    if window == "truncated" and args.split.startswith("eval"):
                         meta[i]["transcript_truncated"] = whisper_transcribe(whisper, wtok, s[None])
         arr.flush()
         for i in ids:

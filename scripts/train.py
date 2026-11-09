@@ -27,7 +27,7 @@ import torch
 import torch.nn.functional as F
 
 from whisper_t5_bridge.bridge import Bridge, BridgeConfig, init_output_scale, load_bridge, param_count, save_bridge
-from whisper_t5_bridge.data import Examples, length_batches, to_device
+from whisper_t5_bridge.data import ExampleSet, Examples, length_batches, to_device
 from whisper_t5_bridge.student import (add_cross_attn_lora, decoder_logits, encode_text, kl_topk, load_t5,
                                        lora_state, student_encoder_states)
 from safetensors.torch import save_file
@@ -109,6 +109,8 @@ def main():
     ap.add_argument("--repeat-weight", type=float, default=1.0)
     ap.add_argument("--ctc-weight", type=float, default=0.0)
     ap.add_argument("--subset", default="data/flan_subset")
+    ap.add_argument("--extra", nargs="*", default=[], metavar="SPLIT:TEACHER_DIR:SUBSET_DIR",
+                    help="more training sources, e.g. libri:data/teacher_libri:data/libri_subset")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -121,6 +123,13 @@ def main():
 
     tok, t5 = load_t5(device)
     train = Examples(args.features, args.teacher, "train", tok, args.subset, part="train", repeat=args.repeat)
+    if args.extra:
+        sources = [train]
+        for spec in args.extra:
+            split, teacher_dir, subset_dir = spec.split(":")
+            sources.append(Examples(args.features, teacher_dir, split, tok, subset_dir, part="train", repeat=args.repeat))
+            print(f"extra source {split}: {len(sources[-1])} records over {len(sources[-1].meta)} clips", flush=True)
+        train = ExampleSet(sources)
     val = Examples(args.features, args.teacher, "train", tok, args.subset, part="val")
     val_batches = length_batches(val, args.batch_size, shuffle=False, max_frames=args.max_frames)
     print(f"train {len(train)} records over {len(train.meta)} clips; val {len(val)} pairs over {len(val.meta)} "
