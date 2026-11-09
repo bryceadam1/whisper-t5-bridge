@@ -50,7 +50,7 @@ def main():
     ap.add_argument("--audio", default="data/audio")
     ap.add_argument("--subset", default="data/flan_subset")
     ap.add_argument("--out", default="data/features")
-    ap.add_argument("--split", choices=["train", "eval_seen", "eval_heldout", "libri"], required=True)
+    ap.add_argument("--split", required=True, help="train, eval_seen, eval_heldout, or a libri* split")
     ap.add_argument("--skip-qc", action="store_true",
                     help="real recordings with ground-truth transcripts: keep every clip within the length limit")
     ap.add_argument("--max-wer", type=float, default=0.3)

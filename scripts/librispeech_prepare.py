@@ -38,6 +38,7 @@ def main():
     ap.add_argument("--root", required=True, help="LibriSpeech root containing train-clean-100/")
     ap.add_argument("--subsets", nargs="+", default=["train-clean-100"])
     ap.add_argument("--subset-out", default="data/libri_subset")
+    ap.add_argument("--split-name", default="libri", help="split name for the manifest and feature files")
     ap.add_argument("--renderings", type=int, default=2)
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
@@ -63,7 +64,7 @@ def main():
                                        "instruction": tidy(before + after), "family": family})
                 items.append({"id": cid, "task": "librispeech", "family": "librispeech", "input": text,
                               "tts_text": text, "options": None, "source_utt": uid, "renderings": renderings})
-                clips.append({"id": cid, "split": "libri", "speaker": uid.split("-")[0], "ref_clip": None,
+                clips.append({"id": cid, "split": args.split_name, "speaker": uid.split("-")[0], "ref_clip": None,
                               "tempo": 1.0, "path": str(path.relative_to(root)), "duration": round(dur, 3),
                               "finished": True, "too_long": False})
     out = Path(args.subset_out)
