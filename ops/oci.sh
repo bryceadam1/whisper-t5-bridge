@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Manage the single GPU instance for this project and keep a running total of GPU hours.
 #
-#   ops/oci.sh launch | start | stop | status | ip | ssh [cmd...] | hours | allow-me
+#   ops/oci.sh launch | start | stop | status | ip | ssh [cmd...] | rsync SRC DST | hours | allow-me | enable-443
 #
 # Resource ids live in ~/.config/whisper-t5-bridge/oci.env (outside the repo); OCI credentials in
 # ~/.oci. Every start/stop is appended to ops/usage_log.csv. Billing for VM.GPU.A10 shapes pauses while
@@ -18,6 +18,10 @@ SHAPE=VM.GPU.A10.1
 AD=LIGD:PHX-AD-1
 IMAGE=ocid1.image.oc1.phx.aaaaaaaasxj5lm6nn7h6udnyzjw4slshdoz56473tdy65ly6r4umy5aa3q6q  # Oracle-Linux-9.8-Gen2-GPU-2026.10.30-0
 BOOT_GB=150
+SSH_PORT=${SSH_PORT:-22}  # 443 also works once `enable-443` has run (for networks that block outbound 22)
+# One multiplexed connection per host: networks that rate-limit SSH see a single TCP connection.
+SSH_OPTS="-p $SSH_PORT -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 -o ControlMaster=auto
+          -o ControlPath=$HOME/.ssh/cm-whisper-t5-bridge-%p -o ControlPersist=30m"
 
 [ -f "$LOG" ] || echo "utc_time,event,instance_state" > "$LOG"
 now() { date -u +%Y-%m-%dT%H:%M:%SZ; }
@@ -66,12 +70,20 @@ case "${1:-status}" in
     echo "$(now),stop,STOPPED" >> "$LOG"; echo "stopped"; hours ;;
   status) echo "$(state)"; hours ;;
   ip) ip ;;
-  ssh) shift; exec ssh -o StrictHostKeyChecking=accept-new -o ServerAliveInterval=30 "opc@$(ip)" "$@" ;;
+  ssh) shift; exec ssh $SSH_OPTS "opc@$(ip)" "$@" ;;
+  rsync)  # ops/oci.sh rsync <src> <dst>, remote paths written as :path
+    shift; host="opc@$(ip)"; exec rsync -az -e "ssh $SSH_OPTS" "${1/#:/$host:}" "${2/#:/$host:}" ;;
+  enable-443)  # make sshd also listen on 443 (SELinux label, firewalld rule), then allow it in the security list
+    ssh $SSH_OPTS "opc@$(ip)" 'sudo grep -q "^Port 443" /etc/ssh/sshd_config || printf "Port 22\nPort 443\n" | sudo tee -a /etc/ssh/sshd_config >/dev/null;
+      sudo semanage port -m -t ssh_port_t -p tcp 443 2>/dev/null || sudo semanage port -a -t ssh_port_t -p tcp 443;
+      sudo firewall-cmd -q --permanent --add-port=443/tcp && sudo firewall-cmd -q --reload; sudo systemctl restart sshd && sudo ss -ltnp | grep sshd'
+    echo "sshd listening on 22 and 443" ;;
   hours) hours ;;
   allow-me)  # point the SSH-only firewall rule at this machine's current public IP
     me=$(curl -s https://checkip.amazonaws.com)
     oci network security-list update --security-list-id "$SECLIST" --force --wait-for-state AVAILABLE \
-      --ingress-security-rules "[{\"source\":\"$me/32\",\"protocol\":\"6\",\"isStateless\":false,\"tcpOptions\":{\"destinationPortRange\":{\"min\":22,\"max\":22}}}]" >/dev/null
-    echo "SSH allowed from $me" ;;
-  *) echo "usage: $0 launch|start|stop|status|ip|ssh|hours|allow-me"; exit 1 ;;
+      --ingress-security-rules "[{\"source\":\"$me/32\",\"protocol\":\"6\",\"isStateless\":false,\"tcpOptions\":{\"destinationPortRange\":{\"min\":22,\"max\":22}}},
+                                 {\"source\":\"$me/32\",\"protocol\":\"6\",\"isStateless\":false,\"tcpOptions\":{\"destinationPortRange\":{\"min\":443,\"max\":443}}}]" >/dev/null
+    echo "SSH (22, 443) allowed from $me" ;;
+  *) echo "usage: $0 launch|start|stop|status|ip|ssh|rsync|hours|allow-me|enable-443"; exit 1 ;;
 esac
