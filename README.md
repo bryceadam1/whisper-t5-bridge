@@ -10,7 +10,8 @@ The bridge is trained by behaviour-alignment distillation, after BLSP
 the teacher, and the student, hearing the input instead of reading it, learns to match the teacher's
 next-token distributions.
 
-Status: pipeline built and smoke-tested locally; GPU run pending. Results go in [REPORT.md](REPORT.md).
+Status: trained and evaluated; see [REPORT.md](REPORT.md) for results, cost and recommendations. The
+released bridge is a stage-1 bridge trained with time masking and noise on the Whisper states.
 
 ## Method
 
@@ -102,6 +103,8 @@ python -m scripts.whisper_features --split train      # and eval_seen, eval_held
 python -m scripts.train --out runs/stage1
 python -m scripts.train --out runs/stage2 --init-bridge runs/stage1/bridge.safetensors --lora-rank 8
 python -m scripts.evaluate --bridge runs/stage1/bridge.safetensors --out results/stage1
+python -m scripts.control_transcripts --split eval_seen   # control transcripts, openai/whisper-style decoding
+python -m scripts.export --bridge runs/stage1_aug/bridge.safetensors --out release
 
 # local CPU timing
 python -m scripts.cpu_timing --bridge runs/stage1/bridge.safetensors --out results/cpu_timing.json

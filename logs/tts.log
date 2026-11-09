@@ -1,0 +1,41 @@
+861 clips to generate (0 already done)
+  WeightNorm.apply(module, name, dim)
+512/861 clips, 1.03 h audio, 9.4x realtime, 6.6 min
+861/861 clips, 1.49 h audio, 8.8x realtime, 10.1 min
+861 clips to generate (861 already done)
+  WeightNorm.apply(module, name, dim)
+512/861 clips, 1.06 h audio, 11.9x realtime, 5.3 min
+861/861 clips, 1.54 h audio, 12.0x realtime, 7.7 min
+19675 clips to generate (1722 already done)
+  WeightNorm.apply(module, name, dim)
+512/19675 clips, 0.78 h audio, 11.6x realtime, 4.0 min
+1024/19675 clips, 1.56 h audio, 11.6x realtime, 8.0 min
+1536/19675 clips, 2.36 h audio, 11.2x realtime, 12.6 min
+2048/19675 clips, 3.15 h audio, 10.9x realtime, 17.3 min
+2560/19675 clips, 3.94 h audio, 11.1x realtime, 21.3 min
+3072/19675 clips, 4.73 h audio, 11.2x realtime, 25.2 min
+3584/19675 clips, 5.52 h audio, 11.3x realtime, 29.3 min
+4096/19675 clips, 6.32 h audio, 11.3x realtime, 33.4 min
+4608/19675 clips, 7.11 h audio, 11.5x realtime, 37.2 min
+5120/19675 clips, 7.92 h audio, 11.5x realtime, 41.3 min
+5632/19675 clips, 8.72 h audio, 11.6x realtime, 45.2 min
+6144/19675 clips, 9.37 h audio, 11.6x realtime, 48.6 min
+6656/19675 clips, 10.01 h audio, 11.5x realtime, 52.1 min
+7168/19675 clips, 10.67 h audio, 11.5x realtime, 55.5 min
+7680/19675 clips, 11.33 h audio, 11.5x realtime, 59.0 min
+8192/19675 clips, 12.01 h audio, 11.5x realtime, 62.7 min
+8704/19675 clips, 12.66 h audio, 11.4x realtime, 66.5 min
+9216/19675 clips, 13.32 h audio, 11.5x realtime, 69.8 min
+9728/19675 clips, 13.95 h audio, 11.4x realtime, 73.2 min
+10240/19675 clips, 14.60 h audio, 11.4x realtime, 76.7 min
+10752/19675 clips, 15.24 h audio, 11.4x realtime, 79.9 min
+11264/19675 clips, 15.90 h audio, 11.4x realtime, 83.8 min
+11776/19675 clips, 16.54 h audio, 11.3x realtime, 87.8 min
+12288/19675 clips, 17.13 h audio, 11.3x realtime, 90.9 min
+12800/19675 clips, 17.72 h audio, 11.3x realtime, 94.4 min
+13312/19675 clips, 18.32 h audio, 11.3x realtime, 97.4 min
+13824/19675 clips, 18.96 h audio, 11.3x realtime, 100.6 min
+14336/19675 clips, 19.59 h audio, 11.3x realtime, 104.1 min
+14848/19675 clips, 20.21 h audio, 11.3x realtime, 107.6 min
+time limit of 105.0 min reached; stopping cleanly
+TTS_DONE

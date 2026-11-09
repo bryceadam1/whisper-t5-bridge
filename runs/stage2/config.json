@@ -1,0 +1,17 @@
+{
+ "features": "data/features",
+ "teacher": "data/teacher",
+ "out": "runs/stage2",
+ "layers": 3,
+ "batch_size": 64,
+ "steps": 3000,
+ "lr": 0.0002,
+ "warmup": 200,
+ "ce_weight": 0.2,
+ "init_bridge": "runs/stage1/bridge.safetensors",
+ "lora_rank": 8,
+ "lora_lr": 0.0003,
+ "eval_every": 500,
+ "val_size": 600,
+ "seed": 0
+}

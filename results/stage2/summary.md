@@ -1,0 +1,132 @@
+
+### eval_seen/truncated
+
+| system | family | n | exact match | token agree | mean KL |
+|---|---|---|---|---|---|
+| bridge | ALL | 812 | 0.367 | 0.754 | 0.977 |
+| bridge | closed_book_qa | 226 | 0.323 | 0.786 | 1.206 |
+| bridge | concept_to_sentence | 109 | 0.073 | 0.711 | 0.633 |
+| bridge | continuation | 96 | 0.021 | 0.482 | 3.619 |
+| bridge | multiple_choice | 159 | 0.270 | 0.751 | 0.847 |
+| bridge | question_type | 118 | 0.788 | 0.924 | 0.119 |
+| bridge | sentiment | 104 | 0.760 | 0.910 | 0.132 |
+| asr_control | ALL | 812 | 0.573 | 0.840 | 0.366 |
+| asr_control | closed_book_qa | 226 | 0.460 | 0.847 | 0.157 |
+| asr_control | concept_to_sentence | 109 | 0.257 | 0.796 | 0.201 |
+| asr_control | continuation | 96 | 0.062 | 0.351 | 3.696 |
+| asr_control | multiple_choice | 159 | 0.736 | 0.934 | 0.062 |
+| asr_control | question_type | 118 | 0.924 | 0.970 | 0.038 |
+| asr_control | sentiment | 104 | 0.971 | 0.989 | 0.023 |
+| instr_only | ALL | 812 | 0.171 | 0.568 | 1.387 |
+| instr_only | closed_book_qa | 226 | 0.000 | 0.542 | 1.270 |
+| instr_only | concept_to_sentence | 109 | 0.000 | 0.487 | 1.186 |
+| instr_only | continuation | 96 | 0.000 | 0.141 | 6.088 |
+| instr_only | multiple_choice | 159 | 0.258 | 0.678 | 0.951 |
+| instr_only | question_type | 118 | 0.297 | 0.739 | 0.765 |
+| instr_only | sentiment | 104 | 0.606 | 0.853 | 0.178 |
+| text_with_lora | ALL | 812 | 0.867 | 0.974 | 0.005 |
+| text_with_lora | closed_book_qa | 226 | 0.850 | 0.970 | 0.007 |
+| text_with_lora | concept_to_sentence | 109 | 0.725 | 0.972 | 0.004 |
+| text_with_lora | continuation | 96 | 0.990 | 0.997 | 0.002 |
+| text_with_lora | multiple_choice | 159 | 0.748 | 0.962 | 0.006 |
+| text_with_lora | question_type | 118 | 0.975 | 0.991 | 0.004 |
+| text_with_lora | sentiment | 104 | 1.000 | 1.000 | 0.000 |
+
+### eval_seen/full
+
+| system | family | n | exact match | token agree | mean KL |
+|---|---|---|---|---|---|
+| bridge | ALL | 812 | 0.339 | 0.747 | 1.113 |
+| bridge | closed_book_qa | 226 | 0.265 | 0.778 | 1.417 |
+| bridge | concept_to_sentence | 109 | 0.028 | 0.702 | 0.804 |
+| bridge | continuation | 96 | 0.042 | 0.482 | 3.569 |
+| bridge | multiple_choice | 159 | 0.277 | 0.750 | 0.985 |
+| bridge | question_type | 118 | 0.746 | 0.909 | 0.125 |
+| bridge | sentiment | 104 | 0.731 | 0.900 | 0.123 |
+| asr_control | ALL | 812 | 0.599 | 0.858 | 0.341 |
+| asr_control | closed_book_qa | 226 | 0.456 | 0.856 | 0.139 |
+| asr_control | concept_to_sentence | 109 | 0.367 | 0.842 | 0.145 |
+| asr_control | continuation | 96 | 0.062 | 0.344 | 3.710 |
+| asr_control | multiple_choice | 159 | 0.767 | 0.946 | 0.048 |
+| asr_control | question_type | 118 | 0.949 | 0.979 | 0.023 |
+| asr_control | sentiment | 104 | 0.990 | 0.996 | 0.015 |
+| instr_only | ALL | 812 | 0.171 | 0.568 | 1.387 |
+| instr_only | closed_book_qa | 226 | 0.000 | 0.542 | 1.270 |
+| instr_only | concept_to_sentence | 109 | 0.000 | 0.487 | 1.186 |
+| instr_only | continuation | 96 | 0.000 | 0.141 | 6.088 |
+| instr_only | multiple_choice | 159 | 0.258 | 0.678 | 0.951 |
+| instr_only | question_type | 118 | 0.297 | 0.739 | 0.765 |
+| instr_only | sentiment | 104 | 0.606 | 0.853 | 0.178 |
+| text_with_lora | ALL | 812 | 0.867 | 0.974 | 0.005 |
+| text_with_lora | closed_book_qa | 226 | 0.850 | 0.970 | 0.007 |
+| text_with_lora | concept_to_sentence | 109 | 0.725 | 0.972 | 0.004 |
+| text_with_lora | continuation | 96 | 0.990 | 0.997 | 0.002 |
+| text_with_lora | multiple_choice | 159 | 0.748 | 0.962 | 0.006 |
+| text_with_lora | question_type | 118 | 0.975 | 0.991 | 0.004 |
+| text_with_lora | sentiment | 104 | 1.000 | 1.000 | 0.000 |
+
+### eval_heldout/truncated
+
+| system | family | n | exact match | token agree | mean KL |
+|---|---|---|---|---|---|
+| bridge | ALL | 801 | 0.351 | 0.752 | 0.986 |
+| bridge | closed_book_qa | 219 | 0.283 | 0.788 | 1.234 |
+| bridge | concept_to_sentence | 106 | 0.066 | 0.710 | 0.641 |
+| bridge | continuation | 92 | 0.000 | 0.474 | 3.657 |
+| bridge | multiple_choice | 162 | 0.259 | 0.742 | 0.849 |
+| bridge | question_type | 115 | 0.791 | 0.925 | 0.130 |
+| bridge | sentiment | 107 | 0.738 | 0.901 | 0.126 |
+| asr_control | ALL | 801 | 0.586 | 0.848 | 0.358 |
+| asr_control | closed_book_qa | 219 | 0.425 | 0.844 | 0.155 |
+| asr_control | concept_to_sentence | 106 | 0.368 | 0.817 | 0.206 |
+| asr_control | continuation | 92 | 0.054 | 0.355 | 3.705 |
+| asr_control | multiple_choice | 162 | 0.741 | 0.938 | 0.058 |
+| asr_control | question_type | 115 | 0.930 | 0.975 | 0.033 |
+| asr_control | sentiment | 107 | 0.981 | 0.993 | 0.012 |
+| instr_only | ALL | 801 | 0.171 | 0.568 | 1.366 |
+| instr_only | closed_book_qa | 219 | 0.000 | 0.542 | 1.261 |
+| instr_only | concept_to_sentence | 106 | 0.000 | 0.479 | 1.197 |
+| instr_only | continuation | 92 | 0.000 | 0.143 | 5.983 |
+| instr_only | multiple_choice | 162 | 0.259 | 0.681 | 0.938 |
+| instr_only | question_type | 115 | 0.278 | 0.732 | 0.779 |
+| instr_only | sentiment | 107 | 0.589 | 0.845 | 0.176 |
+| text_with_lora | ALL | 801 | 0.865 | 0.973 | 0.005 |
+| text_with_lora | closed_book_qa | 219 | 0.840 | 0.968 | 0.007 |
+| text_with_lora | concept_to_sentence | 106 | 0.736 | 0.973 | 0.004 |
+| text_with_lora | continuation | 92 | 0.989 | 0.997 | 0.002 |
+| text_with_lora | multiple_choice | 162 | 0.753 | 0.963 | 0.006 |
+| text_with_lora | question_type | 115 | 0.974 | 0.991 | 0.004 |
+| text_with_lora | sentiment | 107 | 0.991 | 0.996 | 0.000 |
+
+### eval_heldout/full
+
+| system | family | n | exact match | token agree | mean KL |
+|---|---|---|---|---|---|
+| bridge | ALL | 801 | 0.341 | 0.745 | 1.127 |
+| bridge | closed_book_qa | 219 | 0.251 | 0.769 | 1.455 |
+| bridge | concept_to_sentence | 106 | 0.047 | 0.698 | 0.819 |
+| bridge | continuation | 92 | 0.011 | 0.471 | 3.661 |
+| bridge | multiple_choice | 162 | 0.272 | 0.749 | 0.978 |
+| bridge | question_type | 115 | 0.748 | 0.910 | 0.138 |
+| bridge | sentiment | 107 | 0.766 | 0.912 | 0.115 |
+| asr_control | ALL | 801 | 0.614 | 0.860 | 0.347 |
+| asr_control | closed_book_qa | 219 | 0.457 | 0.854 | 0.148 |
+| asr_control | concept_to_sentence | 106 | 0.396 | 0.843 | 0.155 |
+| asr_control | continuation | 92 | 0.054 | 0.338 | 3.809 |
+| asr_control | multiple_choice | 162 | 0.778 | 0.944 | 0.055 |
+| asr_control | question_type | 115 | 0.974 | 0.991 | 0.013 |
+| asr_control | sentiment | 107 | 1.000 | 1.000 | 0.009 |
+| instr_only | ALL | 801 | 0.171 | 0.568 | 1.366 |
+| instr_only | closed_book_qa | 219 | 0.000 | 0.542 | 1.261 |
+| instr_only | concept_to_sentence | 106 | 0.000 | 0.479 | 1.197 |
+| instr_only | continuation | 92 | 0.000 | 0.143 | 5.983 |
+| instr_only | multiple_choice | 162 | 0.259 | 0.681 | 0.938 |
+| instr_only | question_type | 115 | 0.278 | 0.732 | 0.779 |
+| instr_only | sentiment | 107 | 0.589 | 0.845 | 0.176 |
+| text_with_lora | ALL | 801 | 0.865 | 0.973 | 0.005 |
+| text_with_lora | closed_book_qa | 219 | 0.840 | 0.968 | 0.007 |
+| text_with_lora | concept_to_sentence | 106 | 0.736 | 0.973 | 0.004 |
+| text_with_lora | continuation | 92 | 0.989 | 0.997 | 0.002 |
+| text_with_lora | multiple_choice | 162 | 0.753 | 0.963 | 0.006 |
+| text_with_lora | question_type | 115 | 0.974 | 0.991 | 0.004 |
+| text_with_lora | sentiment | 107 | 0.991 | 0.996 | 0.000 |

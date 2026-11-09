@@ -1,0 +1,31 @@
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/861 in 6 s
+861 records, mean output 7.0 tokens, unfinished 13, 14 s
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/58663 in 2 s
+2688/58663 in 33 s
+5248/58663 in 64 s
+7808/58663 in 95 s
+10368/58663 in 127 s
+12928/58663 in 157 s
+15488/58663 in 189 s
+18048/58663 in 220 s
+20608/58663 in 253 s
+23168/58663 in 281 s
+25728/58663 in 313 s
+28288/58663 in 346 s
+30848/58663 in 384 s
+33408/58663 in 417 s
+35968/58663 in 449 s
+38528/58663 in 482 s
+41088/58663 in 514 s
+43648/58663 in 548 s
+46208/58663 in 577 s
+48768/58663 in 602 s
+51328/58663 in 629 s
+53888/58663 in 650 s
+56448/58663 in 673 s
+58663 records, mean output 7.4 tokens, unfinished 1150, 694 s
+TEACHER_DONE

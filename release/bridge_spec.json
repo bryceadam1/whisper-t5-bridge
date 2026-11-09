@@ -1,0 +1,215 @@
+{
+ "format": "whisper-t5-bridge/1",
+ "config": {
+  "in_dim": 512,
+  "d_model": 512,
+  "n_layers": 3,
+  "n_heads": 8,
+  "ffn_dim": 2048,
+  "conv_kernel": 3,
+  "conv_stride": 2,
+  "eps": 1e-05
+ },
+ "input": "Whisper base.en encoder output (after its final layer_norm), shape (T, 512), 50 states/s",
+ "output": "states in flan-t5-small encoder space, shape (ceil(T/2), 512); concatenated with the T5-encoded instruction along the sequence axis and passed to the T5 decoder as encoder_hidden_states (order is irrelevant: T5 cross-attention has no position term)",
+ "layout": "Linear weights are (out, in) and compute x @ W.T + b; Conv1d weight is (out, in, kernel)",
+ "ops": [
+  "x = gelu_erf(conv1d(x, conv.weight, conv.bias, stride=2, padding=1))   # over time, channels-first",
+  "for i in 0..3: pre-norm block",
+  "  h = layer_norm(x, attn_norm, eps); q,k,v = linear(h, q|k|v); split 8 heads of 64; a = softmax(q k^T / sqrt(64)) v (padded keys masked); x = x + linear(merge(a), o)",
+  "  x = x + linear(gelu_erf(linear(layer_norm(x, ffn_norm, eps), up)), down)",
+  "x = layer_norm(x, final_norm, eps)"
+ ],
+ "activation": "GELU, exact erf form (not the tanh approximation)",
+ "norm": "LayerNorm with weight and bias, eps=1e-05; pre-norm in every block, one final norm",
+ "dtype": "float32",
+ "tensors": {
+  "conv.weight": [
+   512,
+   512,
+   3
+  ],
+  "conv.bias": [
+   512
+  ],
+  "layers.0.attn_norm.weight": [
+   512
+  ],
+  "layers.0.attn_norm.bias": [
+   512
+  ],
+  "layers.0.ffn_norm.weight": [
+   512
+  ],
+  "layers.0.ffn_norm.bias": [
+   512
+  ],
+  "layers.0.q.weight": [
+   512,
+   512
+  ],
+  "layers.0.q.bias": [
+   512
+  ],
+  "layers.0.k.weight": [
+   512,
+   512
+  ],
+  "layers.0.k.bias": [
+   512
+  ],
+  "layers.0.v.weight": [
+   512,
+   512
+  ],
+  "layers.0.v.bias": [
+   512
+  ],
+  "layers.0.o.weight": [
+   512,
+   512
+  ],
+  "layers.0.o.bias": [
+   512
+  ],
+  "layers.0.up.weight": [
+   2048,
+   512
+  ],
+  "layers.0.up.bias": [
+   2048
+  ],
+  "layers.0.down.weight": [
+   512,
+   2048
+  ],
+  "layers.0.down.bias": [
+   512
+  ],
+  "layers.1.attn_norm.weight": [
+   512
+  ],
+  "layers.1.attn_norm.bias": [
+   512
+  ],
+  "layers.1.ffn_norm.weight": [
+   512
+  ],
+  "layers.1.ffn_norm.bias": [
+   512
+  ],
+  "layers.1.q.weight": [
+   512,
+   512
+  ],
+  "layers.1.q.bias": [
+   512
+  ],
+  "layers.1.k.weight": [
+   512,
+   512
+  ],
+  "layers.1.k.bias": [
+   512
+  ],
+  "layers.1.v.weight": [
+   512,
+   512
+  ],
+  "layers.1.v.bias": [
+   512
+  ],
+  "layers.1.o.weight": [
+   512,
+   512
+  ],
+  "layers.1.o.bias": [
+   512
+  ],
+  "layers.1.up.weight": [
+   2048,
+   512
+  ],
+  "layers.1.up.bias": [
+   2048
+  ],
+  "layers.1.down.weight": [
+   512,
+   2048
+  ],
+  "layers.1.down.bias": [
+   512
+  ],
+  "layers.2.attn_norm.weight": [
+   512
+  ],
+  "layers.2.attn_norm.bias": [
+   512
+  ],
+  "layers.2.ffn_norm.weight": [
+   512
+  ],
+  "layers.2.ffn_norm.bias": [
+   512
+  ],
+  "layers.2.q.weight": [
+   512,
+   512
+  ],
+  "layers.2.q.bias": [
+   512
+  ],
+  "layers.2.k.weight": [
+   512,
+   512
+  ],
+  "layers.2.k.bias": [
+   512
+  ],
+  "layers.2.v.weight": [
+   512,
+   512
+  ],
+  "layers.2.v.bias": [
+   512
+  ],
+  "layers.2.o.weight": [
+   512,
+   512
+  ],
+  "layers.2.o.bias": [
+   512
+  ],
+  "layers.2.up.weight": [
+   2048,
+   512
+  ],
+  "layers.2.up.bias": [
+   2048
+  ],
+  "layers.2.down.weight": [
+   512,
+   2048
+  ],
+  "layers.2.down.bias": [
+   512
+  ],
+  "final_norm.weight": [
+   512
+  ],
+  "final_norm.bias": [
+   512
+  ]
+ },
+ "whisper_window": {
+  "model": "openai/whisper-base.en encoder, including its final layer_norm",
+  "samples": "16 kHz mono audio followed by 3 s of zeros, then zero-padded to a multiple of 320 samples (an even number of mel frames)",
+  "log_mel": "openai/whisper log_mel_spectrogram: n_fft 400, hop 160, Hann window, centred (reflect padding), last frame dropped, power, 80 mel bins, log10 clamp 1e-10, max(x, x.max() - 8), (x + 4) / 4",
+  "encoder": "conv1 + gelu, conv2 (stride 2) + gelu, add the first T_mel/2 rows of the positional embedding, encoder layers, layer_norm -> (T_mel/2, 512)",
+  "sample_rate": 16000
+ },
+ "t5": {
+  "model": "google/flan-t5-small, unmodified",
+  "use": "encoder_hidden_states = concat([t5_encoder(instruction_tokens), bridge(whisper_states)], seq axis); encoder attention mask all ones for both parts; decode greedily with the T5 decoder"
+ }
+}

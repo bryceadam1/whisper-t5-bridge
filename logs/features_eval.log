@@ -1,0 +1,15 @@
+861 clips, windows ['truncated', 'full']
+Using custom `forced_decoder_ids` from the (generation) config. This is deprecated in favor of the `task` and `language` flags/config options.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+QC done in 25 s; keep 825/861
+truncated states: 399557 frames (0.41 GB) in 213 s
+full states: 1291500 frames (1.32 GB) in 238 s
+done in 238 s; mean WER 0.056, median 0.000
+861 clips, windows ['truncated', 'full']
+Using custom `forced_decoder_ids` from the (generation) config. This is deprecated in favor of the `task` and `language` flags/config options.
+The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+QC done in 23 s; keep 813/861
+truncated states: 407405 frames (0.42 GB) in 203 s
+full states: 1291500 frames (1.32 GB) in 228 s
+done in 228 s; mean WER 0.065, median 0.000
+FEAT_EVAL_DONE
