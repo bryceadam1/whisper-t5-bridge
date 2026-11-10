@@ -1,0 +1,15 @@
+extra source libri: 35696 records over 27647 clips
+extra source libri360: 30227 records over 23091 clips
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/opc/whisper-t5-bridge/scripts/train.py", line 257, in <module>
+    main()
+  File "/home/opc/whisper-t5-bridge/scripts/train.py", line 156, in main
+    sources.append(Examples(args.features, teacher_dir, split, tok, subset_dir, part="train", repeat=args.repeat))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/opc/whisper-t5-bridge/whisper_t5_bridge/data.py", line 60, in __init__
+    ctc = dict(zip(self.meta, tokenizer([spoken[i] for i in self.meta], add_special_tokens=False).input_ids))
+                                         ~~~~~~^^^
+KeyError: 'libri-30d0aac464'
+TRAIN_DONE

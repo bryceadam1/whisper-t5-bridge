@@ -1,0 +1,208 @@
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+64/12000 transcripts, 155 tasks, 22 s
+128/12000 transcripts, 306 tasks, 31 s
+192/12000 transcripts, 468 tasks, 38 s
+256/12000 transcripts, 628 tasks, 49 s
+320/12000 transcripts, 776 tasks, 59 s
+384/12000 transcripts, 920 tasks, 67 s
+448/12000 transcripts, 1062 tasks, 78 s
+512/12000 transcripts, 1216 tasks, 89 s
+576/12000 transcripts, 1377 tasks, 100 s
+640/12000 transcripts, 1540 tasks, 111 s
+704/12000 transcripts, 1696 tasks, 120 s
+768/12000 transcripts, 1853 tasks, 130 s
+832/12000 transcripts, 2015 tasks, 141 s
+896/12000 transcripts, 2163 tasks, 150 s
+960/12000 transcripts, 2320 tasks, 161 s
+1024/12000 transcripts, 2474 tasks, 172 s
+1088/12000 transcripts, 2619 tasks, 182 s
+1152/12000 transcripts, 2782 tasks, 193 s
+1216/12000 transcripts, 2935 tasks, 204 s
+1280/12000 transcripts, 3089 tasks, 212 s
+1344/12000 transcripts, 3255 tasks, 223 s
+1408/12000 transcripts, 3410 tasks, 235 s
+1472/12000 transcripts, 3568 tasks, 246 s
+1536/12000 transcripts, 3715 tasks, 257 s
+1600/12000 transcripts, 3862 tasks, 268 s
+1664/12000 transcripts, 4030 tasks, 279 s
+1728/12000 transcripts, 4187 tasks, 291 s
+1792/12000 transcripts, 4337 tasks, 302 s
+1856/12000 transcripts, 4500 tasks, 313 s
+1920/12000 transcripts, 4653 tasks, 324 s
+1984/12000 transcripts, 4817 tasks, 335 s
+2048/12000 transcripts, 4984 tasks, 347 s
+2112/12000 transcripts, 5146 tasks, 358 s
+2176/12000 transcripts, 5302 tasks, 369 s
+2240/12000 transcripts, 5465 tasks, 379 s
+2304/12000 transcripts, 5627 tasks, 388 s
+2368/12000 transcripts, 5791 tasks, 399 s
+2432/12000 transcripts, 5941 tasks, 411 s
+2496/12000 transcripts, 6106 tasks, 422 s
+2560/12000 transcripts, 6271 tasks, 433 s
+2624/12000 transcripts, 6430 tasks, 445 s
+2688/12000 transcripts, 6589 tasks, 454 s
+2752/12000 transcripts, 6742 tasks, 465 s
+2816/12000 transcripts, 6896 tasks, 476 s
+2880/12000 transcripts, 7063 tasks, 488 s
+2944/12000 transcripts, 7234 tasks, 499 s
+3008/12000 transcripts, 7386 tasks, 511 s
+3072/12000 transcripts, 7550 tasks, 522 s
+3136/12000 transcripts, 7699 tasks, 534 s
+3200/12000 transcripts, 7855 tasks, 545 s
+3264/12000 transcripts, 8025 tasks, 556 s
+3328/12000 transcripts, 8180 tasks, 568 s
+3392/12000 transcripts, 8336 tasks, 579 s
+3456/12000 transcripts, 8486 tasks, 589 s
+3520/12000 transcripts, 8635 tasks, 600 s
+3584/12000 transcripts, 8786 tasks, 612 s
+3648/12000 transcripts, 8944 tasks, 623 s
+3712/12000 transcripts, 9111 tasks, 634 s
+3776/12000 transcripts, 9274 tasks, 645 s
+3840/12000 transcripts, 9424 tasks, 656 s
+3904/12000 transcripts, 9580 tasks, 665 s
+3968/12000 transcripts, 9728 tasks, 677 s
+4032/12000 transcripts, 9886 tasks, 687 s
+4096/12000 transcripts, 10051 tasks, 698 s
+4160/12000 transcripts, 10222 tasks, 705 s
+4224/12000 transcripts, 10377 tasks, 713 s
+4288/12000 transcripts, 10531 tasks, 724 s
+4352/12000 transcripts, 10691 tasks, 735 s
+4416/12000 transcripts, 10847 tasks, 746 s
+4480/12000 transcripts, 11002 tasks, 757 s
+4544/12000 transcripts, 11175 tasks, 768 s
+4608/12000 transcripts, 11339 tasks, 778 s
+4672/12000 transcripts, 11500 tasks, 787 s
+4736/12000 transcripts, 11645 tasks, 798 s
+4800/12000 transcripts, 11805 tasks, 809 s
+4864/12000 transcripts, 11967 tasks, 820 s
+4928/12000 transcripts, 12129 tasks, 831 s
+4992/12000 transcripts, 12279 tasks, 841 s
+5056/12000 transcripts, 12445 tasks, 853 s
+5120/12000 transcripts, 12606 tasks, 864 s
+5184/12000 transcripts, 12756 tasks, 875 s
+5248/12000 transcripts, 12915 tasks, 886 s
+5312/12000 transcripts, 13072 tasks, 897 s
+5376/12000 transcripts, 13224 tasks, 905 s
+5440/12000 transcripts, 13389 tasks, 916 s
+5504/12000 transcripts, 13555 tasks, 927 s
+5568/12000 transcripts, 13718 tasks, 938 s
+5632/12000 transcripts, 13884 tasks, 949 s
+5696/12000 transcripts, 14042 tasks, 959 s
+5760/12000 transcripts, 14196 tasks, 970 s
+5824/12000 transcripts, 14345 tasks, 981 s
+5888/12000 transcripts, 14514 tasks, 992 s
+5952/12000 transcripts, 14666 tasks, 1003 s
+6016/12000 transcripts, 14810 tasks, 1015 s
+6080/12000 transcripts, 14961 tasks, 1026 s
+6144/12000 transcripts, 15117 tasks, 1033 s
+6208/12000 transcripts, 15284 tasks, 1044 s
+6272/12000 transcripts, 15444 tasks, 1056 s
+6336/12000 transcripts, 15600 tasks, 1067 s
+6400/12000 transcripts, 15769 tasks, 1078 s
+6464/12000 transcripts, 15925 tasks, 1087 s
+6528/12000 transcripts, 16079 tasks, 1099 s
+6592/12000 transcripts, 16238 tasks, 1106 s
+6656/12000 transcripts, 16399 tasks, 1114 s
+6720/12000 transcripts, 16560 tasks, 1126 s
+6784/12000 transcripts, 16718 tasks, 1137 s
+6848/12000 transcripts, 16881 tasks, 1146 s
+6912/12000 transcripts, 17034 tasks, 1157 s
+6976/12000 transcripts, 17191 tasks, 1169 s
+7040/12000 transcripts, 17343 tasks, 1180 s
+7104/12000 transcripts, 17499 tasks, 1191 s
+7168/12000 transcripts, 17647 tasks, 1203 s
+7232/12000 transcripts, 17818 tasks, 1214 s
+7296/12000 transcripts, 17985 tasks, 1225 s
+7360/12000 transcripts, 18143 tasks, 1236 s
+7424/12000 transcripts, 18303 tasks, 1248 s
+7488/12000 transcripts, 18455 tasks, 1259 s
+7552/12000 transcripts, 18615 tasks, 1270 s
+7616/12000 transcripts, 18772 tasks, 1282 s
+7680/12000 transcripts, 18919 tasks, 1291 s
+7744/12000 transcripts, 19079 tasks, 1299 s
+7808/12000 transcripts, 19227 tasks, 1311 s
+7872/12000 transcripts, 19394 tasks, 1321 s
+7936/12000 transcripts, 19554 tasks, 1330 s
+8000/12000 transcripts, 19727 tasks, 1340 s
+8064/12000 transcripts, 19884 tasks, 1348 s
+8128/12000 transcripts, 20032 tasks, 1355 s
+8192/12000 transcripts, 20208 tasks, 1361 s
+8256/12000 transcripts, 20364 tasks, 1369 s
+8320/12000 transcripts, 20525 tasks, 1375 s
+8384/12000 transcripts, 20678 tasks, 1382 s
+8448/12000 transcripts, 20838 tasks, 1389 s
+8512/12000 transcripts, 20993 tasks, 1395 s
+8576/12000 transcripts, 21149 tasks, 1403 s
+8640/12000 transcripts, 21311 tasks, 1410 s
+8704/12000 transcripts, 21465 tasks, 1418 s
+8768/12000 transcripts, 21616 tasks, 1425 s
+8832/12000 transcripts, 21761 tasks, 1430 s
+8896/12000 transcripts, 21915 tasks, 1436 s
+8960/12000 transcripts, 22067 tasks, 1444 s
+9024/12000 transcripts, 22221 tasks, 1451 s
+9088/12000 transcripts, 22376 tasks, 1458 s
+9152/12000 transcripts, 22535 tasks, 1465 s
+9216/12000 transcripts, 22686 tasks, 1471 s
+9280/12000 transcripts, 22848 tasks, 1479 s
+9344/12000 transcripts, 23007 tasks, 1486 s
+9408/12000 transcripts, 23170 tasks, 1493 s
+9472/12000 transcripts, 23313 tasks, 1500 s
+9536/12000 transcripts, 23473 tasks, 1508 s
+9600/12000 transcripts, 23631 tasks, 1513 s
+9664/12000 transcripts, 23789 tasks, 1521 s
+9728/12000 transcripts, 23944 tasks, 1528 s
+9792/12000 transcripts, 24096 tasks, 1535 s
+9856/12000 transcripts, 24255 tasks, 1543 s
+9920/12000 transcripts, 24412 tasks, 1550 s
+9984/12000 transcripts, 24574 tasks, 1557 s
+10048/12000 transcripts, 24731 tasks, 1564 s
+10112/12000 transcripts, 24883 tasks, 1571 s
+10176/12000 transcripts, 25033 tasks, 1579 s
+10240/12000 transcripts, 25188 tasks, 1586 s
+10304/12000 transcripts, 25350 tasks, 1593 s
+10368/12000 transcripts, 25495 tasks, 1601 s
+10432/12000 transcripts, 25663 tasks, 1608 s
+10496/12000 transcripts, 25820 tasks, 1615 s
+10560/12000 transcripts, 25979 tasks, 1622 s
+10624/12000 transcripts, 26137 tasks, 1630 s
+10688/12000 transcripts, 26301 tasks, 1637 s
+10752/12000 transcripts, 26461 tasks, 1643 s
+10816/12000 transcripts, 26598 tasks, 1651 s
+10880/12000 transcripts, 26761 tasks, 1658 s
+10944/12000 transcripts, 26922 tasks, 1665 s
+11008/12000 transcripts, 27072 tasks, 1672 s
+11072/12000 transcripts, 27227 tasks, 1679 s
+11136/12000 transcripts, 27384 tasks, 1686 s
+11200/12000 transcripts, 27552 tasks, 1693 s
+11264/12000 transcripts, 27711 tasks, 1700 s
+11328/12000 transcripts, 27879 tasks, 1708 s
+11392/12000 transcripts, 28034 tasks, 1714 s
+11456/12000 transcripts, 28188 tasks, 1721 s
+11520/12000 transcripts, 28343 tasks, 1729 s
+11584/12000 transcripts, 28490 tasks, 1736 s
+11648/12000 transcripts, 28643 tasks, 1743 s
+11712/12000 transcripts, 28793 tasks, 1751 s
+11776/12000 transcripts, 28958 tasks, 1758 s
+11840/12000 transcripts, 29128 tasks, 1765 s
+11904/12000 transcripts, 29285 tasks, 1773 s
+11968/12000 transcripts, 29442 tasks, 1780 s
+12000/12000 transcripts, 29530 tasks, 1785 s
+11935 transcripts, 29530 tasks: {'extractive_qa': 9089, 'multiple_choice': 8693, 'verification': 11748}
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/29530 in 1 s
+2688/29530 in 12 s
+5248/29530 in 26 s
+7808/29530 in 39 s
+10368/29530 in 53 s
+12928/29530 in 68 s
+15488/29530 in 84 s
+18048/29530 in 98 s
+20608/29530 in 113 s
+23168/29530 in 129 s
+25728/29530 in 140 s
+28288/29530 in 151 s
+29530 records, mean output 5.9 tokens, unfinished 10, 162 s
+QWEN_OK

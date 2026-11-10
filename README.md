@@ -10,8 +10,10 @@ The bridge is trained by behaviour-alignment distillation, after BLSP
 the teacher, and the student, hearing the input instead of reading it, learns to match the teacher's
 next-token distributions.
 
-Status: two rounds trained and evaluated; see [REPORT.md](REPORT.md). The best bridge (round 2, "C2") adds
-184 h of real LibriSpeech speech to the FLAN TTS data; same architecture and tensor layout as round 1.
+Status: three rounds trained and evaluated; see [REPORT.md](REPORT.md). The best bridge (round 3, "R3") keeps
+66% of flan-t5-small's task score on the tasks flan-t5-small itself can do (the Whisper-transcript route
+keeps 89%) at ~2.5x lower CPU cost. It was trained on FLAN TTS audio plus 184 h of LibriSpeech with
+FLAN-style prompts; same architecture and tensor layout as round 1.
 
 ## Method
 

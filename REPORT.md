@@ -1,5 +1,97 @@
 # whisper-t5-bridge: results
 
+## Round 3 (2026-11-09/10): task accuracy, Whisper-decoder bridges, FLAN-style tasks on real speech
+
+**Bottom line.** Measured against the datasets' own answers (not agreement with flan-t5-small), the best
+bridge, **R3**, reaches **66% of flan-t5-small's task score** on the tasks flan-t5-small itself can do,
+against 89% for the Whisper-transcript route. It keeps most of flan-t5-small's ability on gist tasks
+(sentiment 0.74 vs 0.86, question type 0.64 vs 0.82, concept coverage 0.67 vs 0.90) and fails where the
+exact words of a long passage matter (lambada continuation 0.13 vs 0.72). It is about 2.5x faster than the
+ASR route on CPU (75 vs 195 ms median per utterance). R3 is C2 continued on FLAN-style tasks over real
+speech; it is in `release_v3/` (same architecture and layout as before; local only, not published).
+
+### A better yardstick: task accuracy
+
+Gold answers were recovered for all 861 eval items from the FLAN rows they came from, and each system is
+scored per task (label accuracy for sentiment and question type, option accuracy for multiple choice,
+next-word accuracy for lambada, concept coverage for common_gen, lenient match for trivia;
+`scripts/task_accuracy.py`). Two families cannot separate systems because flan-t5-small itself fails them
+even on text (closed-book trivia 0.01; multiple choice 0.16, level with no input at all), so the summary
+("informative macro") averages the four families where the teacher beats the instruction-only floor by
+at least 0.2. openbookqa (45 items) is not scored: its eval prompts are open-ended.
+
+Held-out voices, the game's truncated window:
+
+| system | closed_book_qa | concept_to_sentence | continuation | multiple_choice | question_type | sentiment | macro | **informative macro** | % of teacher |
+|---|---|---|---|---|---|---|---|---|---|
+| teacher (text) | 0.01 | 0.90 | 0.72 | 0.16 | 0.82 | 0.86 | 0.578 | **0.823** | 100% |
+| asr_control | 0.01 | 0.87 | 0.40 | 0.16 | 0.80 | 0.85 | 0.516 | **0.731** | 89% |
+| **R3 (released v3)** | 0.00 | 0.67 | 0.13 | 0.16 | 0.64 | 0.74 | 0.392 | **0.546** | 66% |
+| C2 | 0.00 | 0.67 | 0.08 | 0.18 | 0.63 | 0.73 | 0.382 | **0.528** | 64% |
+| R4: Q-Former 25/s | 0.00 | 0.52 | 0.00 | 0.18 | 0.60 | 0.55 | 0.308 | **0.417** | 51% |
+| R1: Q-Former 6/s + alignment | 0.00 | 0.62 | 0.10 | 0.17 | 0.63 | 0.58 | 0.351 | **0.484** | 59% |
+| R1b: Q-Former 6/s, no alignment | 0.00 | 0.61 | 0.05 | 0.15 | 0.68 | 0.65 | 0.359 | **0.499** | 61% |
+| baseline | 0.01 | 0.60 | 0.00 | 0.16 | 0.65 | 0.67 | 0.349 | **0.480** | 58% |
+| instr_only | 0.00 | 0.00 | 0.00 | 0.17 | 0.23 | 0.50 | 0.150 | **0.183** | 22% |
+
+informative families (teacher beats instruction-only by >= 0.2): concept_to_sentence, continuation, question_type, sentiment
+
+Agreement with the teacher, for comparison:
+
+| run | held-out voices, truncated: EM / agree / KL | seen voices, truncated: EM / agree / KL | held-out voices, full 30 s: EM / agree / KL | seen voices, full 30 s: EM / agree / KL |
+|---|---|---|---|---|
+| **R3 (released v3)** | 0.358 / 0.770 / 0.699 | 0.368 / 0.774 / 0.701 | 0.286 / 0.681 / 0.843 | 0.289 / 0.684 / 0.855 |
+| C2 | 0.373 / 0.772 / 0.721 | 0.371 / 0.776 / 0.722 | 0.290 / 0.675 / 0.939 | 0.288 / 0.676 / 0.954 |
+| R4: Q-Former 25/s | 0.293 / 0.717 / 0.829 | 0.310 / 0.722 / 0.834 | 0.285 / 0.704 / 0.913 | 0.288 / 0.705 / 0.920 |
+| R1: Q-Former 6/s + alignment | 0.335 / 0.736 / 0.782 | 0.328 / 0.734 / 0.787 | 0.292 / 0.705 / 0.853 | 0.292 / 0.704 / 0.853 |
+| R1b: Q-Former 6/s, no alignment | 0.348 / 0.737 / 0.813 | 0.328 / 0.734 / 0.813 | 0.298 / 0.708 / 0.950 | 0.298 / 0.712 / 0.960 |
+| baseline | 0.328 / 0.741 / 0.916 | 0.334 / 0.742 / 0.909 | 0.328 / 0.741 / 0.979 | 0.329 / 0.741 / 0.972 |
+| *ASR control* | 0.586 / 0.848 / 0.358 | 0.573 / 0.840 / 0.366 | 0.614 / 0.860 / 0.347 | 0.599 / 0.858 / 0.341 |
+| *instruction only* | 0.171 / 0.568 / 1.366 | 0.171 / 0.568 / 1.387 | 0.171 / 0.568 / 1.366 | 0.171 / 0.568 / 1.387 |
+
+### What was tried
+
+| run | change | outcome |
+|---|---|---|
+| R1 | bridge = learned queries through Whisper base.en's 6 decoder layers (initialised from it, after DiVA), 6 queries/s, + alignment loss (query *i* to T5's encoding of transcript token *i*) | underfit (train KL 0.98 vs 0.42 for the conv bridge); 59% of teacher |
+| R1b | R1 without the alignment loss, full learning rate on the Whisper layers | still underfit; 61% |
+| R4 | R1b at 25 queries/s (testing whether 6/s compressed too much) | worse; 51% |
+| R2 | C2 + 29k Qwen-written tasks | crashed (data bug, fixed); folded into R3 |
+| **R3** | C2 continued 10k steps adding (a) FLAN's own sentence templates (sentiment, keywords, continuation) on all 52k LibriSpeech utterances, ~100k prompts, and (b) ~59k QA / multiple-choice / true-false tasks written by Qwen2.5-1.5B-Instruct for 24k utterances (no Claude usage) | best on task score (66%) and KL; exact match slightly below C2 |
+
+Findings:
+
+1. **FLAN-style tasks on real speech help modestly** (task score 64% → 66%, KL 0.721 → 0.699, and
+   clearly better on full 30 s windows: 43% → 48%). Exact-match agreement fell slightly (0.373 → 0.358):
+   R3 agrees with the teacher's exact wording less often while getting tasks right a little more often.
+2. **The Whisper-decoder Q-Former did not work in three configurations.** Its failure mode is
+   underfitting, not overfitting, and neither removing the alignment loss nor raising the query rate
+   fixed it. A likely cause is that Whisper's decoder layers were trained on token embeddings as inputs and
+   are not easily re-purposed to read out constant queries; DiVA also had 3.5k h of speech and a 1.5B
+   encoder. Not recommended.
+3. **The remaining gap is lexical.** Every bridge does well where the gist decides the answer and badly
+   where exact words of a long input matter (lambada). This is consistent across all three rounds.
+
+### Cost
+
+Round 3 used 4.54 GPU-h, $9.08, including ~0.7 h lost to connectivity: the network blocked outbound SSH
+intermittently (SSH on port 443 was added as a fallback), and the last session ran ~0.5 h past its planned
+stop while the local watchdog was suspended (the Mac slept) and the VM unreachable. **Total, all rounds:
+12.00 GPU-h, $24.00 compute + ~$0.18 boot volume ≈ $24.2 of the $25 budget.** The instance is stopped,
+not terminated (its disk holds all generated audio, features and teacher caches; ~$0.21/day).
+
+### Recommendations
+
+1. **Use `release_v3` (R3) for the game's speech path** for gist-level tasks: intent, sentiment, short
+   classification, simple commands. It is fast and keeps ~75-85% of flan-t5-small's task ability there.
+2. **Keep the ASR route for tasks that depend on exact words** (open questions, names, copying or
+   completing text): it keeps 89% of flan-t5-small's ability, at ~2.5x the CPU cost.
+3. **If you want to push the bridge further,** the evidence points to more and more varied *real* speech
+   (Common Voice, CC0, many speakers and microphones) with FLAN-style prompts like R3's, rather than new
+   architectures or losses. Each data step has helped; no recipe change has.
+
+---
+
 ## Round 2 (2026-11-09): what moved the needle
 
 **Bottom line.** Real recorded speech did; changing the objective or the injection point did not. Adding
@@ -240,7 +332,7 @@ boot-volume charge.
 
 ### Deliverables
 
-* **Round 2: `release_v2/`** (C2): `bridge.safetensors`, `bridge_spec.json`, `reference_io.safetensors`;
+* **Round 3: `release_v3/`** (R3, best on task accuracy). **Round 2: `release_v2/`** (C2): `bridge.safetensors`, `bridge_spec.json`, `reference_io.safetensors`;
   same layout as round 1, better on the game's window. Local only, not committed or published.
 
 * `release/bridge.safetensors`: the released bridge (stage 1 + aug), float32, 52 flat-named tensors,

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/opc/whisper-t5-bridge/scripts/evaluate.py", line 146, in <module>
+    main()
+  File "/home/opc/whisper-t5-bridge/scripts/evaluate.py", line 134, in main
+    results = run(args)
+              ^^^^^^^^^
+  File "/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/torch/utils/_contextlib.py", line 158, in no_grad
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/opc/whisper-t5-bridge/scripts/evaluate.py", line 51, in run
+    bridge = load_bridge(args.bridge).to(device).eval() if args.bridge else None
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/opc/whisper-t5-bridge/whisper_t5_bridge/bridge.py", line 180, in load_bridge
+    with safe_open(path, "pt") as f:
+         ^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: No such file or directory: runs/R2_flan/bridge.safetensors
+EVAL_DONE

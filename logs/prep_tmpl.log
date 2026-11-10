@@ -1,0 +1,50 @@
+28538 transcripts x 2 renderings; templates per family: {'sentiment': 6, 'keywords': 3, 'continuation': 8}
+23837 transcripts x 2 renderings; templates per family: {'sentiment': 6, 'keywords': 3, 'continuation': 8}
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/57076 in 19 s
+2688/57076 in 40 s
+5248/57076 in 68 s
+7808/57076 in 104 s
+10368/57076 in 140 s
+12928/57076 in 177 s
+15488/57076 in 213 s
+18048/57076 in 249 s
+20608/57076 in 286 s
+23168/57076 in 323 s
+25728/57076 in 361 s
+28288/57076 in 398 s
+30848/57076 in 435 s
+33408/57076 in 470 s
+35968/57076 in 507 s
+38528/57076 in 543 s
+41088/57076 in 577 s
+43648/57076 in 610 s
+46208/57076 in 643 s
+48768/57076 in 673 s
+51328/57076 in 697 s
+53888/57076 in 717 s
+56448/57076 in 736 s
+57076 records, mean output 9.5 tokens, unfinished 1269, 745 s
+/home/opc/whisper-t5-bridge/.venv/lib/python3.12/site-packages/triton/knobs.py:504: UserWarning: TRITON_DEFAULT_FP_FUSION is unset: defaulting to FP fusion ENABLED for backward compatibility in Triton 3.9. The default will change to DISABLED in Triton 3.10; set TRITON_DEFAULT_FP_FUSION=1 to keep fusion enabled or =0 to adopt the new default early and silence this warning.
+  warn_once(FP_FUSION_DEFAULT_WARNING)
+128/47674 in 3 s
+2688/47674 in 37 s
+5248/47674 in 71 s
+7808/47674 in 107 s
+10368/47674 in 144 s
+12928/47674 in 181 s
+15488/47674 in 218 s
+18048/47674 in 256 s
+20608/47674 in 293 s
+23168/47674 in 330 s
+25728/47674 in 366 s
+28288/47674 in 404 s
+30848/47674 in 441 s
+33408/47674 in 477 s
+35968/47674 in 513 s
+38528/47674 in 546 s
+41088/47674 in 579 s
+43648/47674 in 607 s
+46208/47674 in 625 s
+47674 records, mean output 9.6 tokens, unfinished 1087, 638 s

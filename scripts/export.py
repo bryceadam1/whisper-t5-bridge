@@ -25,6 +25,7 @@ def main():
     ap.add_argument("--bridge", required=True)
     ap.add_argument("--features", default="data/features")
     ap.add_argument("--out", default="release")
+    ap.add_argument("--audio", default="data/audio", help="used for the reference clip when features are absent")
     args = ap.parse_args()
 
     out = Path(args.out)
@@ -49,11 +50,25 @@ def main():
     }
     (out / "bridge_spec.json").write_text(json.dumps(spec, indent=1))
 
-    # Reference pair from the first eval clip.
+    # Reference pair from the first held-out eval clip: stored encoder states if present, else computed from audio.
     meta = json.loads(open(Path(args.features) / "eval_heldout_meta.jsonl").readline())
-    arr = np.load(Path(args.features) / "eval_heldout_truncated.npy", mmap_mode="r")
-    states = torch.from_numpy(np.asarray(arr[meta["truncated_offset"]:meta["truncated_offset"] + meta["truncated_frames"]],
-                                         dtype=np.float32))[None]
+    feats = Path(args.features) / "eval_heldout_truncated.npy"
+    if feats.exists():
+        arr = np.load(feats, mmap_mode="r")
+        states = torch.from_numpy(np.asarray(arr[meta["truncated_offset"]:meta["truncated_offset"] + meta["truncated_frames"]],
+                                             dtype=np.float32))[None]
+    else:
+        import soundfile as sf
+
+        from scripts.whisper_features import with_lead_in
+        from whisper_t5_bridge.audio import LogMel, encode, window_samples
+        from whisper_t5_bridge.student import load_whisper
+
+        clip = next(json.loads(l) for l in open(Path(args.audio) / "manifest.jsonl")
+                    if json.loads(l)["id"] == meta["id"] and json.loads(l)["split"] == "eval_heldout")
+        fe, _, whisper = load_whisper("cpu")
+        audio = with_lead_in(sf.read(str(Path(args.audio) / clip["path"]), dtype="float32")[0], meta["id"])
+        states = encode(whisper.model.encoder, LogMel(fe.mel_filters)(torch.from_numpy(window_samples(audio, "truncated")))[None])
     with torch.no_grad():
         y, _ = bridge(states)
     save_file({"whisper_states": states[0].contiguous(), "bridge_output": y[0].contiguous()},
